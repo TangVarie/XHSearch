@@ -1,0 +1,7 @@
+interface:
+  display_name: "Sensitive Check"
+  short_description: "Check draft text risks"
+  default_prompt: "Use $sensitive-check to check text drafts for sensitive-content risks with SocialDataX."
+
+policy:
+  allow_implicit_invocation: true
