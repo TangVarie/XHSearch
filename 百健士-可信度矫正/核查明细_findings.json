@@ -1,0 +1,1197 @@
+[
+ {
+  "id": "A1",
+  "claim": "中国母婴藻油DHA 2023年市场规模约112.6亿元(报告标注来源为东方财富网),据此推算2025年约130-140亿元",
+  "original": "PDF《市场调研》：母婴藻油DHA'112.6亿(2023,东方财富网)→按增速推算2025约130-140亿'",
+  "verdict": "修正",
+  "corrected": "数字确认:2023年中国母婴藻油DHA成品市场规模约112.6亿元(零售端)。但来源应为『华经产业研究院/华经情报网』(《2025-2031年中国母婴藻油DHA行业市场调查研究报告》),并非东方财富网(东财至多为转载)。对外引用请改标华经。2025推算130-140亿为报告自行外推(2023基数×约10-17%增速2年),属合理估算但须注明为『测算值』而非已发布数据。",
+  "evidence": "华经情报网与中婴网(转载华经)均载:2023年中国母婴藻油DHA产品市场规模约112.6亿元;同年母婴营养品大盘约1017亿元,DHA占比约11%,内部自洽。多处明确署名华经产业研究院,未见东方财富网原始出处。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "口径=母婴成品零售端;引用须改标华经产业研究院,勿标东方财富网。130-140亿为测算值。",
+  "sources": [
+   "https://www.huaon.com/channel/trend/1022051.html",
+   "https://m.baobei360.com/articles/detail-190464.html"
+  ],
+  "adversarial": {
+   "id": "A1",
+   "holds": true,
+   "adjustedConfidence": "高",
+   "reason": "对抗式复核后矫正结论成立(holds=true)。三次反驳均未推翻其核心断言,但第3次找到一个应向下游明确披露的量级/口径警告。\n\n【反驳1—攻来源(试证其实出自东方财富网)】失败。中英文多轮检索无东财原始出处;华经情报网原文(标题即含\"华经产业研究院\")与中婴网(baobei360)全文转载均明确署名华经《2025-2031年中国母婴藻油DHA行业市场调查研究及投资策略研究报告》。东财域名(dfcfw.com)仅见其聚合托管国证国际《纽曼思IPO点评》研报,恰佐证\"东财至多为转载/聚合\"。→ 来源改标华经、不标东财,成立。\n\n【反驳2—攻数字/口径】失败。中婴网逐字转载确认原句\"按零售计,2023年中国母婴藻油DHA产品市场规模大约增至112.6亿元\";母婴营养品大盘约1017亿元,112.6/1017≈11.1%内部自洽。→ 数字为华经所发布之零售口径值,成立。\n\n【反驳3—找更可信的相反数字(最有力)】产生真实分歧但不构成推翻。弗若斯特沙利文(纽曼思港股IPO招股书采用,权威度高于华经):2023年国内五大藻油DHA品牌销售总产值约20亿元、纽曼思占市场份额约8.1%(当年DHA收入4.04亿元)→反推中国藻油DHA整体市场仅约50亿元(品牌/出厂口径);QYResearch(恒州博智):2024年全球母婴藻油DHA销售额仅约6.01亿美元(约43亿元),出现\"中国单一市场112.6亿>全球\"的数量级矛盾;观知海内信:2023年整体藻油DHA约140亿元。多源绝对量级分歧巨大。但主因是口径:华经\"零售计\"(终端零售额)约为出厂/品牌口径的2倍(保健品零售加价常态),50亿出厂×约2.2≈110亿零售可与112.6亿对齐;QYResearch为公认偏窄/偏低异常值。矫正结论已明确标注\"零售端/母婴成品\"口径,未把112.6亿当作出厂或全球口径,故此分歧未击穿其断言。\n\n【外推校验】130-140亿为测算值成立且合理:按11.9%(新华网/纽曼思CAGR)得约141亿,按14.5%得约148亿,观知海内信亦独立给出~11%增速——130-140亿处于合理区间偏保守端。\n\n【唯一削弱(不推翻)与给下游的告诫】112.6亿系单一商业机构、零售口径估算,其绝对量级被更权威的弗若斯特沙利文(出厂口径约50亿)约2倍地\"高报\"。因此\"高\"置信仅适用于\"这是华经发布的零售口径数字+来源应改标华经\",不等于\"真实市场即约112.6亿\"。若报告把112.6亿→130-140亿与厂商营收/出厂规模直接对比,会系统性高估约1倍,须先做口径换算并附出厂口径旁证(F&S约50亿)。据此维持holds=true、置信高。",
+   "sources": [
+    "https://www.huaon.com/channel/trend/1022051.html",
+    "https://m.baobei360.com/articles/detail-190464.html",
+    "https://finance.sina.com.cn/roll/2024-10-11/doc-incseivz5189206.shtml",
+    "https://m.gelonghui.com/p/2801425",
+    "http://www.news.cn/health/20250110/b7b4a1460c9e4bcb8af1b32ec823b085/c.html"
+   ]
+  }
+ },
+ {
+  "id": "A2",
+  "claim": "同一PDF并存『5.67亿(原料端)』与『112.6亿/128.8亿(零售端)』是否自相矛盾",
+  "original": "PDF 1.2节:'2025中国藻油DHA行业市场规模5.67亿元(原料端),同比+9.88%';同PDF他处:母婴112.6亿、膳食补充剂128.8亿",
+  "verdict": "确认",
+  "corrected": "不矛盾,是产业链不同层级,可共存。5.67亿=上游藻油原料/oil端(2025,+9.88%);112.6亿=母婴成品零售端(2023)。二者量级差约20倍,符合原料油→软胶囊成品的封装/品牌/渠道加价规律(原料成本仅占成品零售价很小比例)。测算佐证:2025原料需求约1142吨×约500元/kg≈5.7亿,与5.67亿吻合。对外引用两者时必须显式标注『原料端』或『成品零售端』,严禁混用或相加。",
+  "evidence": "上游序列自洽:2020年3.18亿→2023年5.16亿(CAGR17.51%)→2025年5.67亿(+9.88%)→2027年预测9.07亿,全为个位数亿元;2025供需约产1164吨/需1142吨。成品端母婴单独已112.6亿。原料端与成品端来自不同报告、不同口径。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "关键澄清:5.67亿与112.6亿口径不同、可共存;引用必须标层级。",
+  "sources": [
+   "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+   "https://www.gonyn.com/industry/1879231.html",
+   "https://m.gelonghui.com/p/1640150"
+  ],
+  "adversarial": {
+   "id": "A2",
+   "holds": true,
+   "reason": "对抗式复核结论：反驳不成立，结论 holds=true，且被独立源进一步加固。\n\n【核心裁定成立】我尝试证伪的方向是\"两个数字其实同一口径→若同口径则子集(112.6亿母婴) > 全集(5.67亿原料)构成真矛盾\"。此反驳被一手源直接击穿：华经产业研究院原文(经 m.baobei360.com 镜像核到原句)明确写\"按零售计，2023年中国母婴藻油DHA产品市场规模大约增至112.6亿元\"，并在产业链描述中把\"DHA藻油\"列为上游原料供应环节，把母婴专卖店/电商/医院列为下游零售。即 5.67亿=上游藻油原料/oil端(2025，智研咨询)、112.6亿=母婴成品零售端(2023，按零售计)确系产业链不同层级，可共存、不矛盾。A2 的核心结论及\"引用必须标层级\"的处置正确。\n\n【独立加固】纽曼思港股招股书(沙利文/Frost & Sullivan，经新浪财经)载纽曼思2023年零售销售值6.588亿元、市占约4.7%，反推2023年藻油DHA整体零售市场≈140亿元，与112.6亿同处百亿级；对照智研原料端5.67亿，形成约20–25倍的层级落差，且此落差由与智研/华经互不相同的第三方(沙利文)交叉印证——恰好证明\"原料端 vs 零售端\"的量级差是真实的产业链结构，而非报告自相矛盾。\n\n【找到但不足以推翻的瑕疵，仅削弱外围支撑】(1)\"约20倍\"口径不洁：5.67亿是全应用领域原料总量，112.6亿仅母婴零售子集；以总量比子集，真实\"母婴切片\"的成品/原料加价倍数远高于20倍，故20倍只是方向正确的粗略示意，非精确加价比。(2)\"上游序列自洽\"被高估：2020→2023 CAGR 17.51% 与 2023(5.16亿)→2025(5.67亿) 隐含CAGR约4.85%、及2025年\"+9.88%同比\"(需2024≈5.16亿=与2023同值)三者互不自洽，系不同报告年份拼接；且预测口径打架(智研2027年9.07亿 vs 共研/gonyn 2028年7.8亿)。(3)\"1142吨×约500元/kg≈5.7亿\"属循环佐证——约500元/kg单价其实由市场规模÷吨数反推(5.67亿/1142吨≈497元/kg)，是自洽而非独立验证。(4)128.8亿膳食补充剂端本会话未能独立溯源(疑同属华经报告体系)，但非本结论的承重项。此外存在更大口径竞争数(观知海内信：2025年约160亿元，全产业链/成品口径)，恰印证\"口径不同必须显式标层级\"这一 A2 自身处方的必要性。\n\n综上：以上瑕疵仅动摇\"序列自洽\"\"20倍加价\"\"吨×价佐证\"等外围表述，不动摇承重结论。5.67亿与112.6亿口径不同、可共存的裁定经一手源直接确认并经沙利文第三方交叉印证。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://m.baobei360.com/articles/detail-190464.html",
+    "https://www.gonyn.com/industry/1879231.html",
+    "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+    "https://finance.sina.com.cn/cj/2025-01-12/doc-ineetfvt3694717.shtml",
+    "https://www.sohu.com/a/861899239_122029436"
+   ]
+  }
+ },
+ {
+  "id": "A3",
+  "claim": "2025年中国藻油DHA(原料端)市场规模5.67亿元,同比+9.88%",
+  "original": "PDF 1.2节:'2025中国藻油DHA行业市场规模5.67亿元(原料端),同比+9.88%'",
+  "verdict": "确认",
+  "corrected": "确认:2025年中国藻油DHA原料端市场规模约5.67亿元,同比+9.88%(智研咨询/共研咨询口径)。历年:2020年3.18亿→2023年5.16亿(CAGR17.51%)→2027年预测9.07亿。此为上游原料/oil端,非成品零售端。",
+  "evidence": "智研咨询/共研网多处一致:2025年5.67亿、+9.88%;2020-2023年3.18→5.16亿、CAGR17.51%;2025产/需约1164/1142吨。",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "口径=原料/上游oil端,勿与成品零售端混用。",
+  "sources": [
+   "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+   "https://www.gonyn.com/industry/1879231.html",
+   "https://m.gelonghui.com/p/1640150"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A4",
+  "claim": "藻油DHA增速表:2023约12%/2024 21.43%/2025 9.88%/2026预测10-12%",
+  "original": "PDF 2.4增速表:藻油DHA增速 2023~12% / 2024 21.43% / 2025 9.88% / 2026预测10-12%",
+  "verdict": "修正",
+  "corrected": "部分确认:2025年+9.88%可溯源(智研/共研,原料端)。但2024年21.43%查无直接出处,且与已发布的水平序列冲突——2023年5.16亿→2025年5.67亿仅两年+9.9%(约年均4.8%),无法容纳2024单年+21.43%,应降级为『存疑』。2023约12%、2026预测10-12%属合理量级但同为未直接署名的拼接值。建议对外只用可溯源的+9.88%(2025,原料端),其余标注为估算。",
+  "evidence": "9.88%(2025)直接见于智研/共研;21.43%在检索中无独立命中,且与3.18/5.16/5.67亿水平序列的隐含增速不一致(存在不同报告拼接)。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "这些为原料端增速;21.43%无出处且与水平序列打架,慎用。",
+  "sources": [
+   "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+   "https://m.gelonghui.com/p/1640150"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A5",
+  "claim": "Omega-3膳食补充剂总盘约131亿元,其中鱼油DHA约92.5亿(占70.6%)、藻油DHA约38.5亿(占29.4%)",
+  "original": "《营销策略》与《六维评估》:Omega-3膳食补充剂总盘~131亿元+;鱼油DHA~92.5亿(70.6%)、藻油DHA~38.5亿(10-12%增速,29.4%)",
+  "verdict": "存疑",
+  "corrected": "无可信独立出处,疑为报告自行测算/假设拆分(92.5+38.5=131,占比70.6%/29.4%完全内洽,呈典型『先定总盘再按比例拆』特征)。合理性存疑:已发布的中国鱼油整体市场2023年仅约62.31亿元,而此处单『鱼油DHA补充剂』就92.5亿,超出全鱼油市场,同口径下偏高。建议弃用,或改标为『报告自测/假设』,不得作为已核实市场数据对外引用;若要保留,须补一份可查的鱼油/藻油DHA补充剂拆分来源。",
+  "evidence": "多轮中英检索(智研/华经/gelonghui/新营养/21经济网)均未命中131/92.5/38.5亿及70.6%/29.4%拆分;数字内部完全自洽提示为派生值;中国鱼油整体2023约62.31亿(报告大厅)构成量级反证。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "口径警示:此拆分无出处且鱼油DHA分项超全鱼油市场;藻油DHA可及市场是38.5亿还是128.8亿直接影响进入策略,须落实来源。",
+  "sources": [
+   "https://m.chinabgao.com/freereport/94813.html",
+   "https://www.xinyingyang.com/content-14-27475-1.html"
+  ],
+  "adversarial": {
+   "id": "A5",
+   "holds": true,
+   "reason": "见上",
+   "adjustedConfidence": "中",
+   "sources": [
+    "https://m.chinabgao.com/freereport/94813.html",
+    "https://www.grandviewresearch.com/horizon/outlook/omega-3-supplements-market/china",
+    "https://m.gelonghui.com/p/1976269",
+    "https://www.chyxx.com/wiki/1225288.html",
+    "https://www.xinyingyang.com/content-14-27475-1.html"
+   ]
+  }
+ },
+ {
+  "id": "A6",
+  "claim": "膳食补充剂用DHA藻油市场预计突破128.8亿元(来源:百度文库)",
+  "original": "PDF《市场调研》:'膳食补充剂用DHA藻油预计突破128.8亿(百度文库)'",
+  "verdict": "存疑",
+  "corrected": "建议弃用。来源仅为百度文库(UGC,不可靠),无任何独立机构佐证;且与更可信图景冲突——母婴藻油DHA成品已112.6亿且为主导消费段,成人补充剂藻油DHA不应反超至128.8亿;更与报告自身《营销策略》的藻油DHA=38.5亿相差逾3倍。属报告内三套打架数字中最应剔除者。",
+  "evidence": "检索无任何权威源出现128.8亿(膳食补充剂DHA藻油);百度文库不可作为市场数据一手源;与112.6亿母婴主导结构及38.5亿内部数字均矛盾。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "百度文库来源不可信;与报告内38.5亿藻油DHA自相矛盾,应删。",
+  "sources": [
+   "https://www.huaon.com/channel/trend/1022051.html",
+   "https://m.gelonghui.com/p/1976269"
+  ],
+  "adversarial": {
+   "id": "A6",
+   "holds": true,
+   "reason": "对抗式复核:反驳未成立,原\"存疑/建议弃用\"判定成立(holds=true)。\n\n【反驳尝试1:为128.8亿找独立佐证——失败】用中英文、精确数字、多种细分口径(\"膳食补充剂用DHA藻油\"\"成人保健品DHA\"\"128.8亿\"\"128\")做了6+轮检索,覆盖QYResearch/智研咨询/观研/共研/中国报告大厅/格隆汇等主流行业源,无任何机构给出\"128.8亿(膳食补充剂DHA藻油)\"这一数值。中国报告大厅确有\"膳食补充剂用DHA藻油市场规模\"标签页,但抓取后确认仅是市场测算方法论索引页,无任何具体金额,不能佐证128.8亿。\n\n【反驳尝试2:交叉核对可信量级——反而更坐实存疑】可追溯的中国藻油DHA市场口径普遍在个位数亿元级:2025年约5.67亿元、2028年预计约7.8亿元(格隆汇/QYResearch/共研);全球藻油DHA亦仅约6亿美元(约40亿元)。128.8亿元比这些可信口径高约一个数量级。只有智研/观研/报告大厅一类\"样板报告\"出现1298亿(2018)、1860.7亿(2023)、2835.48亿(2030)等数字,但这些数字彼此、且与全球盘子(约6亿美元)矛盾达数量级,系小数位/OCR错乱的不可靠模板数据,不能作佐证。\n\n【发现原矫正结论一处口径瑕疵——削弱其论证但不推翻结论】其\"母婴112.6亿为主导、成人补充剂不应反超至128.8亿\"的推理口径不严谨:行业分类里\"膳食补充剂用DHA藻油\"是应用大类(与\"婴儿配方奶粉用DHA藻油\"并列),本身涵盖母婴膳食补充剂成品,理论上可大于\"母婴\"子段,故\"不应反超\"逻辑站不住;且112.6亿(与报告大厅口径的119.57亿母婴相近)与128.8亿并非同口径对立项。但这仅削弱其三条论据之一,不改变核心结论。\n\n【裁定】核心判定成立:128.8亿唯一可溯源头为百度文库(UGC),无任何独立机构佐证,且与所有可信口径(个位数亿元级)相差约一个数量级,作为营销load-bearing数字不可用,应弃用。建议微调弃用理由主轴——以\"数字无法溯源+与可信量级差一个数量级\"为主,弱化\"与母婴112.6亿反超矛盾\"这一口径存疑的论据。需实时电商数据的部分不涉及本条。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://m.chinabgao.com/tag/marketsize/ssbcjyDHAzy.html",
+    "https://m.gelonghui.com/p/2681755",
+    "https://m.gelonghui.com/p/2801425",
+    "https://www.qyresearch.com.cn/news/21353/algae-oil-dha",
+    "https://www.chinabaogao.com/detail/624625.html"
+   ]
+  }
+ },
+ {
+  "id": "A7",
+  "claim": "中国小球藻膳食补充剂市场规模70.8亿元(增速约18%)",
+  "original": "PDF与《六维评估》:小球藻膳食补充剂'70.8亿';增速表小球藻~15%/16%/18%/18-20%",
+  "verdict": "存疑",
+  "corrected": "无出处且量级不可信,建议弃用或大幅下修。全球小球藻(成分)市场2022年仅约19.57亿元(约2.49亿美元),中国仅为其一部分;中国单类小球藻膳食补充剂70.8亿元远超全球市场,不成立。多份小球藻报告(贝哲斯/gelonghui)相关中国数值均被付费留白,未能取得70.8亿的出处。若原意为更宽的『微藻(螺旋藻+小球藻)』或成品零售大口径,须重新界定并另找来源;18%等增速亦无独立出处。",
+  "evidence": "全球小球藻2022约19.57亿元/2.49亿美元;检索多份报告页对中国具体值留白,70.8亿无命中;中国值超全球属逻辑硬伤。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "量级超全球市场,基本可判过高;非核心品类,但作为TAM构成项应剔除或重定口径。",
+  "sources": [
+   "https://m.gelonghui.com/p/762904",
+   "https://m.gelonghui.com/p/2476924"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A8",
+  "claim": "绿藻粉/叶绿素市场规模20.3亿元(增速12-15%)",
+  "original": "PDF与《六维评估》:绿藻粉'20.3亿';叶绿素/绿粉增速12-15%",
+  "verdict": "存疑",
+  "corrected": "无任何独立出处,建议弃用。检索未见与『绿藻粉/叶绿素20.3亿』对应的可信中国市场数据,12-15%增速亦无来源。作为300-350亿TAM的构成项之一应剔除,或补充可查来源后再用。",
+  "evidence": "多轮检索均无20.3亿(绿藻粉/叶绿素)命中;各微藻色素/绿粉报告未提供该口径中国规模。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "无出处;非核心品类,应从TAM拼盘中剔除。",
+  "sources": [
+   "https://m.gelonghui.com/p/2198910"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A9",
+  "claim": "综合TAM约300-350亿元;与《营销策略》131亿总盘并存",
+  "original": "PDF:综合TAM'约300-350亿元';《营销策略》:Omega-3膳食补充剂总盘'~131亿元+'",
+  "verdict": "存疑",
+  "corrected": "300-350亿≈母婴(130-140)+膳食补充剂藻油DHA(128.8)+小球藻(70.8)+绿藻粉(20.3),但4项中有3项(128.8/70.8/20.3)无可信出处且彼此可能重复计算,故该拼盘TAM被高估、不宜对外用。131亿(营销策略)与300-350亿差异根源=口径不同:131亿仅『成人Omega-3补充剂(鱼油+藻油)』,300-350亿另叠加母婴大盘+小球藻+绿藻,二者不可直接比较。推荐口径:只引用可靠子项——(a)母婴藻油DHA成品约112.6亿(2023,华经)→测算约130亿(2025);(b)成人藻油DHA补充剂为数十亿量级(口径待补来源,不用128.8亿);(c)上游藻油DHA原料端约5.67亿(2025,智研)。不要对外使用『300-350亿TAM』这一拼盘数。",
+  "evidence": "TAM四构成项中三项(128.8/70.8/20.3)在A6/A7/A8均判无出处;131亿在A5判无独立出处;仅母婴112.6亿(华经)与原料端5.67亿(智研)可靠。差异可完全由口径(是否含母婴大盘/小球藻/绿藻)解释。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "核心结论:弃用300-350亿拼盘TAM;对外只引可靠子项并逐项标口径(母婴成品/成人补充剂/原料端)。",
+  "sources": [
+   "https://www.huaon.com/channel/trend/1022051.html",
+   "https://m.chyxx.com/pdf/60/31/1136031.pdf"
+  ],
+  "adversarial": {
+   "id": "A9",
+   "holds": true,
+   "reason": "对抗式复核未能推翻A9，反而进一步坐实。(1)A9判为\"可靠\"的两个子项均获独立验证：母婴藻油DHA 112.6亿(2023)在华经与中婴网镜像均出现，且镜像明确标注\"按零售计\"(终端零售口径)；Foodaily《百亿微藻赛道》交叉给出母婴DHA藻油2019=65.86亿→2023≈119.57亿，与112.6亿同量级(~110-120亿)，故该锚点稳固，\"→约130亿(2025)\"外推可辩护(112.6×~1.08²≈131)。上游原料端5.67亿(2025,智研)获证实，与需求量~1142吨相互印证，确属价值链上游、与112.6亿零售成品口径不同，A9的双口径标注正确而非自相矛盾。(2)A9判为\"无出处\"的三项我同样查无可信来源：128.8亿(膳食补充剂藻油DHA)仅见方法论占位页无实数；70.8亿(小球藻)不仅无出处，且高于全球小球藻~19.57亿(2022),自相矛盾、明显偏高；20.3亿(绿藻粉)无出处。(3)遍寻未见任何单一可信源给出\"300-350亿\"——最大的微藻/藻油总盘要么小得多(中国微藻产值~20亿美元、全球微藻~25-32亿美元),要么是明显失真的系列(观研称2023中国藻油DHA行业1860.7亿,内部矛盾、疑为模板错误)。130+128.8+70.8+20.3≈350印证\"拼盘\"读法成立,且把母婴大盘+萃取藻油DHA+全细胞小球藻/绿藻相加属口径混装并很可能母婴/膳食补充剂重复计算。131亿(成人Omega-3补充剂)与300-350亿的差异可由口径完全解释。故弃用300-350亿拼盘TAM、对外只引可靠子项并逐项标口径的核心结论成立。唯一软点是A9自认\"成人藻油DHA补充剂为数十亿量级(口径待补来源)\"仍未独立取证——但这是A9诚实的留白,非其缺陷,不动摇load-bearing结论。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.huaon.com/channel/trend/1022051.html",
+    "https://m.baobei360.com/articles/detail-190464.html",
+    "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+    "https://www.foodaily.com/articles/27409"
+   ]
+  }
+ },
+ {
+  "id": "A10",
+  "claim": "高纯EPA全球市场复合年增长率(CAGR)14.7%",
+  "original": "《六维评估》:高纯EPA全球CAGR 14.7%",
+  "verdict": "确认",
+  "corrected": "基本确认,约14%量级。贝哲斯咨询口径:全球EPA重点藻类Omega-3市场2024年约78.89亿元→2030年约173.82亿元,隐含CAGR≈14.1%,与14.7%相近(细微差异或因起止年/口径不同)。对外可引用『约14%(藻类EPA Omega-3,贝哲斯,2024-2030)』。",
+  "evidence": "贝哲斯:全球EPA藻类Omega-3 2024年78.89亿元、2030年173.82亿元;(173.82/78.89)^(1/6)-1≈14.1%。中国同口径2024约2.23亿元。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "口径为藻类EPA Omega-3(贝哲斯),引用时标明来源与年段。",
+  "sources": [
+   "https://m.gelonghui.com/p/1927596"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A11",
+  "claim": "全球藻油(DHA)市场CAGR 9.3%",
+  "original": "PDF 2.4增速表:全球藻油CAGR 9.3%",
+  "verdict": "修正",
+  "corrected": "9.3%偏低,建议上修。全球藻油DHA真实CAGR约12-13%:QYResearch口径2024年约6.04亿美元→2031年约13.77亿美元,CAGR约12.7%(2025-2031);Research&Markets口径全球藻类Omega-3 2022-2027约13.36%。9.3%或取自更宽的『algae oil(广义藻油,不限DHA)』报告或旧数据。对外若指藻油DHA宜用约12-13%;若坚持9.3%须注明为广义藻油/特定来源。",
+  "evidence": "QYResearch:全球藻油DHA 2024年6.04亿美元、2031年13.77亿美元、CAGR12.7%;Research&Markets:藻类Omega-3 CAGR13.36%(2022-2027)。均高于9.3%。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "口径差异:藻油DHA约12-13%,广义藻油可能更低;9.3%来源不明。",
+  "sources": [
+   "https://www.qyresearch.com.cn/news/21353/algae-oil-dha"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A12",
+  "claim": "小球藻增速序列约15%/16%/18%/18-20%",
+  "original": "PDF 2.4增速表:小球藻 ~15%/16%/18%/18-20%",
+  "verdict": "存疑",
+  "corrected": "无独立出处,建议弃用或标为估算。与A7(小球藻70.8亿量级本身存疑)一并,整个小球藻数据块缺乏可靠一手源,不宜对外引用。",
+  "evidence": "检索未命中该增速序列的权威出处;相关小球藻报告中国口径多被付费留白。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "与A7绑定;小球藻数据块整体无出处。",
+  "sources": [
+   "https://m.gelonghui.com/p/2476924"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "A13",
+  "claim": "【综合产出】给出一套口径一致、可对外引用的推荐数字",
+  "original": "报告并存三套打架口径:PDF(300-350亿TAM/112.6亿母婴/128.8亿补充剂/5.67亿原料/70.8亿小球藻/20.3亿绿藻)、营销策略(131亿总盘/92.5亿鱼油/38.5亿藻油)、六维评估(同营销策略+各增速)",
+  "verdict": "修正",
+  "corrected": "推荐对外统一口径(逐项标层级与来源):【上游原料端】中国藻油DHA原料约5.67亿元(2025,+9.88%,智研/共研)。【成品零售端-母婴】中国母婴藻油DHA约112.6亿元(2023,华经)→测算约130亿元(2025)。【成品零售端-成人补充剂】藻油DHA补充剂为数十亿量级——报告内38.5亿(营销策略)较128.8亿(百度文库)更可信但两者均无硬出处,建议标『待核实』,切勿用128.8亿。【全球增速】藻油DHA约12-13%CAGR(QYResearch);藻类EPA Omega-3约14%(贝哲斯)。【应弃用】300-350亿拼盘TAM、131/92.5/38.5亿Omega-3拆分、小球藻70.8亿、绿藻粉20.3亿及其增速——均无可信出处。核心可信锚点仅两个:母婴112.6亿(华经)与原料端5.67亿(智研)。",
+  "evidence": "综合A1-A12:仅母婴112.6亿(华经,双源)与原料端5.67亿(智研/共研,多源)可溯源确认;131/92.5/38.5、128.8、70.8、20.3、9.3%等均无可信一手出处或与已发布数据/常识量级冲突。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "对外引用请只用两个可信锚点+标注口径层级;三套打架数字中把无出处项全部降级/剔除。",
+  "sources": [
+   "https://www.huaon.com/channel/trend/1022051.html",
+   "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+   "https://www.qyresearch.com.cn/news/21353/algae-oil-dha",
+   "https://m.gelonghui.com/p/1927596",
+   "https://m.chinabgao.com/freereport/94813.html"
+  ],
+  "adversarial": {
+   "id": "A13",
+   "holds": true,
+   "reason": "对抗式复核未能推翻A13,反而多点坐实,故holds=true。逐项尝试反驳: (1)攻两个锚点是否站不住——均站得住。母婴112.6亿(2023,零售口径)经华经报告确认,并与沙利文112.59亿互证(沙利文口径系纽曼思港交所IPO招股书采用),达招股书级可信度;历史5年CAGR约14.5%、未来约8.8%,据此测2025≈133亿,与A13\"测算约130亿\"吻合。原料端5.67亿(2025)由智研给出,共研独立预测2028年7.8亿元、2025年产量约1164吨可回算至单位数亿元同量级——此前某搜索摘要误译为\"5.67 billion(56.7亿)\"实为翻译错误,按吨产量×单价(≈50万/吨)确证为上游原料口径。(2)攻弃用项是否其实有可信出处、被错杀——反核查后反而更该弃:同源体系全球鱼油Omega-3仅约169亿元(2026,wenkh),则\"中国鱼油92.5亿\"占全球逾50%不合常理;\"131亿\"极可能是贝哲斯\"全球藻类EPA Omega-3市场2028达131.06亿元\"被错标为\"中国Omega-3总盘\";小球藻70.8亿/绿藻20.3亿属不同品类且查无DHA口径出处;128.8亿/38.5亿均无硬一手源,A13标\"待核实、勿用128.8亿\"稳妥。(3)攻增速——QYResearch坐实全球藻油DHA CAGR 12.7%(约$604M/2024→$1.377B/2031),A13\"12-13%\"正确。残留可商榷点(不足以推翻):母婴\"双源\"实为华经转引沙利文(仍属高可信,非独立双源,标注宜更严谨);藻类EPA\"约14%\"系由13.53%上取整、另存8.2%变体存在口径散布;原料端另有观知海内信更高口径(抓取数字被\"十亿\"单位污染,不可用);\"仅两个锚点\"略保守——QYResearch的中国/全球藻油DHA成品口径可作补充算法,但非干净的中国零售总额。这些均为标注严谨性与完备性层面的小瑕,不动摇\"对外只用两个锚点+分层标口径、无出处项全部剔除\"的核心建议。",
+   "adjustedConfidence": "中",
+   "sources": [
+    "https://www.huaon.com/channel/trend/1022051.html",
+    "https://www.gonyn.com/industry/1879231.html",
+    "https://www.qyresearch.com.cn/news/21353/algae-oil-dha",
+    "https://m.chyxx.com/pdf/60/31/1136031.pdf",
+    "https://m.gelonghui.com/p/1927596",
+    "https://www.wenkh.com.cn/reports/fish-oil-omega-3-1914646719812984832",
+    "https://finance.sina.com.cn/cj/2025-01-12/doc-ineetfvt3694717.shtml"
+   ]
+  }
+ },
+ {
+  "id": "B1",
+  "claim": "品牌\"12年微藻研发\";创始人Colin;是否博士;成立年份",
+  "original": "报告已修正为\"2017年注册\",但多处仍写\"12年微藻研发\",并有\"Colin博士\"类表述",
+  "verdict": "修正",
+  "corrected": "BioGenesis百健士品牌由Colin McGregor于2017年创立/注册,至今约9年(2017→2026)。\"12年\"不是品牌运营年限,而是创始人Colin在创立品牌之前潜心研究微藻/小球藻的年数(各源均为\"经历超过十二年潜心研究\"后于2017年创立)。Colin被一致描述为\"原澳洲航空能源科技工程师\"/\"澳洲最有经验的藻类种植者之一\",官网、LinkedIn、百度百科均无\"博士/PhD\"字样——\"博士\"头衔无从证实,应删去或改为\"资深藻类专家/工程师\"。准确表述:品牌成立于2017年;创始人Colin McGregor拥有12年以上微藻研发经验(非博士学历)。",
+  "evidence": "官网about-us页称Colin为\"one of Australia's most experienced algae growers\",无PhD;LinkedIn载Founded 2017、51-200人;百度百科\"2017年由Colin McGregor创立\"\"经历超过十二年潜心研究\";三源一致",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "宣传中勿将\"12年\"表述为品牌年限,更勿称创始人为\"博士\"",
+  "sources": [
+   "https://www.biogenesisnatural.com/pages/about-us",
+   "https://au.linkedin.com/company/biogenesis-australia",
+   "https://baike.baidu.com/item/%E7%99%BE%E5%81%A5%E5%A3%AB/57591423"
+  ],
+  "adversarial": {
+   "id": "B1",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该矫正结论，三项核心事实均被多源独立印证。1) 成立年份：LinkedIn公司页(Founded 2017, 51-200人)、百度百科(\"2017年由科林·麦克格雷格创立\")、品牌中文官网(\"于2017年创立\")、RocketReach/ZoomInfo(Managing Director since July 2017)四源一致，无任何来源给出其他年份；2017→2026约9年成立。2) \"12年\"口径：官网中文页与百度百科均为同一表述\"经历超过十二年潜心研究…于2017年创立\"，指创立品牌前的研究年数，无来源将其作为品牌运营年限。3) 无\"博士/PhD\"：官网英文about-us(\"one of Australia's most experienced algae growers\")、官网中文页及百度百科(\"原澳洲航空能源科技工程师\")均无博士字样；我专门检索\"Colin博士/麦克格雷格博士\"无任何结果。反向证据反而强化矫正——外部资料显示Colin持Monash大学MBA、曾任Algae.Tec首席运营官，属管理/工程背景而非博士学历。另发现BioGenesis博客中唯一带\"Dr\"者为受访者\"Dr Shellman\"(另一人)，很可能是营销误植\"博士\"头衔的源头。唯一保留意见：宣传所称\"12年潜心研究微藻\"系品牌自述叙事，缺乏逐年独立佐证，但不动摇矫正的三项核心(2017成立、12年≠品牌年限、创始人非博士)。反驳不成立，结论成立。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.biogenesisnatural.com/pages/about-us",
+    "https://www.biogenesisnatural.com/pages/chinese",
+    "https://baike.baidu.com/item/%E7%99%BE%E5%81%A5%E5%A3%AB/57591423",
+    "https://au.linkedin.com/company/biogenesis-australia",
+    "https://renewablesnow.com/news/colin-mcgregor-heads-project-operations-at-algae-tec-280329/",
+    "https://rocketreach.co/colin-mcgregor-email_15345084"
+   ]
+  }
+ },
+ {
+  "id": "B2",
+  "claim": "北昆士兰自有小球藻种植基地;\"澳洲唯一Australian Made & Australian Grown认证Chlorella生产商\"",
+  "original": "报告称基地在北昆/大堡礁地区,并称其为澳洲唯一持AM&AG认证的Chlorella生产商",
+  "verdict": "确认",
+  "corrected": "基地位于北昆士兰州大堡礁地区(tropical Queensland/Great Barrier Reef region)、自有小球藻种植,属实。BioGenesis确为Australian Made Campaign持牌企业,官网及australianmade.com.au持牌名录均称其为\"唯一持有Australian Made & Australian Grown认证的小球藻(Chlorella)生产商\"。该\"唯一\"来自其自身及Australian Made官方持牌页,可作\"官方持牌事实\"确认;但\"唯一\"属superlative,第三方难以穷尽排除他家,建议口径写\"官方持牌名录中(目前已知)唯一\"。",
+  "evidence": "官网about-us:\"the only 'Australian Made, Australian Grown' licensed producer of Chlorella\"\"farm in tropical Queensland\"\"Great Barrier Reef region\";Australian Made官网确认BioGenesis为持牌人",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "\"唯一\"为持牌事实性表述,可用;避免绝对化时补\"官方持牌名录中\"限定",
+  "sources": [
+   "https://www.biogenesisnatural.com/pages/about-us",
+   "https://australianmade.com.au/licensees/biogenesis/chlorella--chlorella-powder--chlorella-tablets--flavoured-chlorella-powder"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "B3",
+  "claim": "BioGenesis产品是否登记在澳洲TGA的ARTG(AUST L号)",
+  "original": "报告将TGA认证标为\"待确认\"",
+  "verdict": "存疑",
+  "corrected": "未检索到BioGenesis任何具体AUST L/ARTG登记号。其旗舰小球藻粉/片在澳作为\"食品/超级食品\"销售(持Australian Made食品认证),该类食品并不需要ARTG登记;DHA藻油类膳食补充剂理论上可能以AUST L上市,但同样未找到证据。故\"TGA认证\"目前无出处支撑,建议在合规宣称中不要声称TGA/AUST L认证,除非能给出具体AUST L编号。",
+  "evidence": "TGA框架:食品无需ARTG,补充剂/complementary medicine才需AUST L;多次公开检索未见BioGenesis作为sponsor或chlorella/藻油的AUST L条目(TGA站点本次多次503/404,非电商数据问题,可后续在TGA eBS逐一复核)",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "可到TGA eBS/ARTG按sponsor检索确认是否存在AUST L号;勿臆造认证",
+  "sources": [
+   "https://www.tga.gov.au/products/medicines/non-prescription-medicines/listed-medicines",
+   "https://www.biogenesisnatural.com/pages/about-us"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "B4",
+  "claim": "三亚崖州湾研发中心签约(报告称2025年11月签约)",
+  "original": "报告称\"2025年11月签约\"三亚崖州湾研发中心",
+  "verdict": "修正",
+  "corrected": "确有此事,但签约时间为2024年12月4日,而非2025年11月。2024-12-04澳大利亚百健士集团与三亚崖州湾科技城管理局签署战略合作备忘录,拟在琼设亚太区域总部并建设全球微藻研发中心、分步建设大型工厂集群。报告\"2025年11月\"年、月均误,应改为\"2024年12月(2024-12-04)\"。",
+  "evidence": "中国新闻网海南频道(2024-12-05)报道\"12月4日...签署战略合作备忘录...设立亚太区域总部,建设全球微藻研发中心\";百度百科同载\"2024年12月4日与三亚崖州湾科技城签署战略合作备忘录\";两独立源一致",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "对\"布局/重返中国市场\"时间线是关键锚点,错1年会扭曲叙事",
+  "sources": [
+   "https://www.hi.chinanews.com.cn/hnnew/2024-12-05/715397.html",
+   "https://baike.baidu.com/item/%E7%99%BE%E5%81%A5%E5%A3%AB/57591423"
+  ],
+  "adversarial": {
+   "id": "B4",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该矫正结论，反而进一步加固。反驳尝试一：查找报告\"2025年11月\"可能对应的真实事件——检索\"百健士 三亚崖州湾 2025年11月 签约\"及\"百健士 2025年11月\"，未发现任何2025年11月的百健士签约/研发中心事件，不存在能为报告日期开脱的另一起活动。反驳尝试二：动摇2024-12-04日期或找源间打架——四源一致收敛：①百度百科逐字\"2024年12月4日与三亚崖州湾科技城签署战略合作备忘录，计划设立亚太区域总部并建设全球微藻研发中心\"；②海南自贸港官网(hnftp.gov.cn，2024-12-05发布)与③中新网海南(2024-12-05)同载\"12月4日...签署战略合作备忘录\"，其中②为官方政府源，构成证据之外的两个额外独立源；④搜狐独立印证签约双方逐字\"澳大利亚百健士集团和三亚崖州湾科技城管理局...签署战略合作备忘录\"及亚太总部+全球微藻中心内容(搜狐作\"全球卓越微藻中心\"、称\"近日\"无确切日，不构成矛盾，仅精度略低)。非致命瑕疵两点：一次对中新网页面的WebFetch因编码问题吐出错误双方名(\"蜂巢能源/德阳\")属工具幻觉而非源冲突；研发中心名称在各源有\"全球微藻研发中心/全球卓越微藻中心\"的措辞微差，不影响日期结论。综上，报告\"2025年11月\"年、月皆误，正确锚点为2024-12-04，矫正成立且仍为时间线关键承重点。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.hi.chinanews.com.cn/hnnew/2024-12-05/715397.html",
+    "https://www.hnftp.gov.cn/xwzx/ywsd/202412/t20241205_3780260.html",
+    "https://www.sohu.com/a/842807449_121955537",
+    "https://baike.baidu.com/item/%E7%99%BE%E5%81%A5%E5%A3%AB/57591423"
+   ]
+  }
+ },
+ {
+  "id": "B5",
+  "claim": "小球藻破壁技术",
+  "original": "报告称品牌采用小球藻破壁技术",
+  "verdict": "确认",
+  "corrected": "属实。官网明确采用\"advanced biodynamic technology to gently crack the hard outer cell wall\"(BioDynamic Cracked Cell Wall破壁工艺),打破小球藻硬细胞壁使营养更易吸收。需注意:破壁是小球藻行业普遍工艺、非该品牌独家专利,宣传时不宜暗示为独有技术。",
+  "evidence": "官网about-us及中文页均述破壁工艺;Amazon产品页标\"BioDynamic Cracked Cell Wall\"",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "破壁为行业通用工艺,避免包装成独家专利",
+  "sources": [
+   "https://www.biogenesisnatural.com/pages/about-us",
+   "https://www.amazon.com/Chlorella-Australian-Organically-Cracked-Shipping/dp/B07B3YJTD9"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "B6",
+  "claim": "\"全球唯一同时拥有小球藻种植基地+藻油DHA产品线的品牌\"",
+  "original": "报告以\"全球唯一同时拥有小球藻种植基地+藻油DHA产品线\"作独占性卖点",
+  "verdict": "存疑",
+  "corrected": "两要素各自属实——BioGenesis确有北昆士兰小球藻种植基地,也确有Algae Oil藻油DHA/EPA产品线(Algae Oil Pure/Plus/Kids)。但\"全球唯一\"为极强superlative且难证实:①行业内藻油DHA普遍来自裂壶藻(Schizochytrium)异养发酵,而非小球藻,故其DHA产品线与其小球藻基地并非同一藻种、非同一垂直产线,\"同时拥有\"更多是产品组合而非垂直一体化;②同时经营微藻养殖与DHA藻油的企业并非仅此一家。建议弱化为\"少数同时布局小球藻种植与藻油DHA的品牌之一\",删去\"全球唯一\"。",
+  "evidence": "LinkedIn/官网列有Algae Oil(DHA&EPA)系列与Chlorella农场;行业资料显示植物基DHA藻油主流原料为Schizochytrium(裂壶藻)异养发酵,与光合小球藻不同藻种;superlative无第三方证据",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "作差异化核心卖点却难证实,建议改为\"少数之一\"以免虚假宣传风险",
+  "sources": [
+   "https://au.linkedin.com/company/biogenesis-australia",
+   "https://www.biogenesisnatural.com/pages/about-us"
+  ],
+  "adversarial": {
+   "id": "B6",
+   "holds": true,
+   "reason": "对抗式复核未能推翻已矫正结论，反而找到更多支持它的证据，故 holds=true。反驳尝试与结果如下：\n\n一、试图证明\"全球唯一\"成立（即想推翻矫正、恢复报告原独占卖点）——失败。找到明确的具名反例：台湾远东生物科技 FEBICO（Far East Bio-Tec，1976年成立）同时经营小球藻/螺旋藻户外培养基地，并拥有藻油DHA产品线（\"Algae DHA Vegan Omega-3 formula from microalgae Schizochytrium sp.\"）。这与\"小球藻种植基地+藻油DHA产品线\"两要素完全重合，直接证伪\"全球唯一\"。可见该superlative不仅\"存疑\"，实已被反例证伪。\n\n二、试图证明两要素并非\"不同藻种/仅产品组合\"（想削弱矫正的口径漏洞论证）——失败，反被强化。BioGenesis 自家 Algae Oil Pure 的DHA/EPA来源为裂壶藻藻油（Chemist Warehouse商品页明列\"DHA/EPA rich Schizochytrium algal oil equivalent to 250 mg DHA and 125 mg EPA\"），并非来自其北昆士兰的光合小球藻。故\"同时拥有\"确为产品组合，而非同藻种垂直一体化，矫正结论的分析口径准确。FEBICO 同样是小球藻培养＋裂壶藻藻油的\"组合\"模式，佐证这是行业普遍形态而非BioGenesis独有的垂直产线。\n\n三、口径漏洞加分项：BioGenesis 官方/渠道文案本身并不主张\"全球唯一同时拥有二者\"，其真实措辞是更窄的\"唯一获认证的澳洲本土小球藻生产商（only certified Australian producer of Chlorella）\"。\"全球唯一\"更像报告方的拔高，落地即有虚假宣传风险。\n\n四、两要素各自属实亦再获确认：北昆士兰（大堡礁地区）淡水池塘小球藻种植基地属实；Algae Oil Pure/Plus/Kids 藻油DHA/EPA产品线属实。\n\n结论：矫正结论（两要素属实、\"全球唯一\"难证且实被反例证伪、建议弱化为\"少数同时布局者之一\"并删去\"全球唯一\"）经独立对抗式复核依然成立，且证据强度可由\"存疑\"提升至接近\"证伪该superlative\"。loadBearing=true 维持：作差异化核心卖点却有具名反例，若不改口有虚假宣传风险。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.chemistwarehouse.com.au/buy/163365/biogenesis-algae-oil-pure-60-capsules",
+    "https://www.biogenesisnatural.com/products/biogenesis-algae-oil-pure",
+    "https://www.biogenesisnatural.com/pages/faqs",
+    "https://www.febico.com/en/product/Vegetable_DHA_Algae_Oil_Capsule.html",
+    "https://qponics.com/"
+   ]
+  }
+ },
+ {
+  "id": "B7",
+  "claim": "中国电商现状:京东健康海外自营旗舰店\"核心产品已下柜\";天猫是否有旗舰店",
+  "original": "报告称京东健康海外自营核心产品已下柜,并对天猫旗舰店存在性做判断",
+  "verdict": "无法独立验证",
+  "corrected": "京东健康海外自营是否下柜、天猫旗舰店是否存在及在售,均属当日店铺后台状态,无法用公开静态网页核实,需实时电商数据复核。此结论直接关系\"重返中国市场\"现状判断,建议以实时电商数据(店铺页/后台)为准后再定稿。",
+  "evidence": "本会话无电商数据API(SocialDataX key未配置),无法读取京东/天猫店铺实时在售与下柜状态",
+  "confidence": "低",
+  "loadBearing": true,
+  "note": "需实时电商数据复核(SocialDataX未配置);\"是否下柜\"若判断错误会显著改变市场现状叙事",
+  "sources": [],
+  "adversarial": {
+   "id": "B7",
+   "holds": true,
+   "reason": "对抗式复核未能推翻原裁定\"无法独立验证\"，反而多方印证其成立。我主动尝试用公开静态源去证实或证伪\"京东健康海外自营核心产品已下柜\"与\"天猫是否有旗舰店/是否在售\"：(1) 抓取京东国际(mall.jd.hk)\"百健士\"店铺搜索页，被302重定向到反爬错误页(h5st.m.jd.com/.../error.html)，静态抓取拿不到店铺/库存/在售状态；(2) 淘宝/天猫搜索(s.taobao.com)本会话直接无法抓取，天猫旗舰店在售与否同样无法静态核实；(3) 多份2024/2025/2026\"DHA藻油十大品牌\"榜单(报告大厅/中国品牌网/CNPP/买购)只列Life'sDHA、纽曼思、惠氏、汤臣倍健等，均未出现\"百健士/BioGenesis\"，未检索到该品牌任何京东海外自营或天猫旗舰店;(4) 品牌官网biogenesisnatural.com为澳洲微藻/超级食物公司(小球藻、螺旋藻),标价澳元,全站零提及China/天猫/京东。核心动态论断(下柜/当日在售)确属实时电商后台状态,公开静态网页与本会话搜索均无法确认,与SocialDataX未配置导致无电商数据API相符,故反驳不成立。唯一可提的口径细化:\"旗舰店是否存在\"本身比\"是否在售\"更偏静态、理论上可经ICP备案/企查查/品牌公告/存档页等旁证核对——但我实际尝试后仍无正向证据,故不改变实操裁定,仅说明其\"存在性\"部分可在定稿前用非电商渠道再补一手。结论:holds=true,原裁定与矫正建议(以实时电商数据为准后再定稿)成立;因loadBearing=true,定稿前务必用实时店铺页/后台状态复核\"下柜\"与\"天猫旗舰店\"叙事。",
+   "adjustedConfidence": "中",
+   "sources": [
+    "https://biogenesisnatural.com",
+    "https://m.chinabgao.com/top/brand/106489.html",
+    "https://www.cnpp.cn/focus/28305.html",
+    "https://www.chinapp.com/best/dhazaoyou.html"
+   ]
+  }
+ },
+ {
+  "id": "C1",
+  "claim": "纽曼思(NEMANS)藻油DHA真实零售价口径,以及PDF'8-12元/粒'与竞品报告'4.4-6.6元/粒(399-599元/90粒)'两处冲突哪个对",
+  "original": "PDF写'8-12元/粒';竞品报告写'4.4-6.6元/粒(399-599元/90粒)'",
+  "verdict": "修正",
+  "corrected": "竞品报告口径正确,PDF口径偏高约一倍应予纠正。主流SKU为儿童装100mg/粒×90粒,官方旗舰/京东日常价约409元(促销343-359元),测评见到499元,即约4.4-6.6元/粒,与竞品报告399-599元/90粒完全吻合;30粒装促销低至89.5元(约3元/粒)。全网未见任何达到8-12元/粒(合720-1080元/90粒)的SKU,PDF该口径无出处。",
+  "evidence": "京东儿童装90粒419元(需券)到手343元、官方409元/促359元;测评见499元;30粒促89.5元;均标100mg/粒。折算4.4-6.6元/粒,PDF的8-12元/粒无对应真实售价",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "当日精确成交价随促销波动,需实时电商数据复核;但价格'带'结论不依赖当日价即可判定",
+  "sources": [
+   "https://news.qq.com/rain/a/20241030A044N600",
+   "https://www.smzdm.com/p/77214527/",
+   "https://www.smzdm.com/p/26470562/",
+   "https://www.smzdm.com/p/119500630/"
+  ],
+  "adversarial": {
+   "id": "C1",
+   "holds": false,
+   "reason": "对抗式复核找到反证，足以推翻矫正结论的核心承重论断。矫正结论断言\"全网未见任何达到8-12元/粒的SKU、PDF该口径无出处\"，此说被证伪。两篇基于纽曼思IPO招股书的独立报道(Foodaily、界面新闻)一致披露：纽曼思DHA按版本/规格分层定价——新西兰版成人型60粒装=499元(招股书原话\"单颗胶囊售价超8元\"，约8.3元/粒)、儿童型90粒装=466元；美国版成人型60粒399元、儿童型90粒399元；中国版成人60粒299元。即新西兰成人60粒装真实落在PDF\"8-12元/粒\"区间下沿，PDF口径并非无出处。\n\n矫正结论的口径漏洞：它把\"8-12元/粒\"换算成\"720-1080元/90粒\"再判无对应SKU，属稻草人——8元/粒来自60粒成人装(每粒含量更高，约200mg，儿童装仅100mg)，而非任何90粒装；用90粒装的总价去否定按粒单价，属口径错配。\n\n客观事实实为SKU分层，两个口径各对应不同产品，无单一\"正确带\"：(1)竞品报告\"4.4-6.6元/粒(399-599/90粒)\"仅覆盖100mg儿童90粒装，方向基本对，但实测该SKU真实价约399-479元(促销更低)、折4.4-5.3元/粒，未见599元/90粒的实际SKU，其上限599偏高、无对应；(2)PDF\"8-12元/粒\"的下界8元/粒有真实出处(新西兰成人60粒装招股书定价)，但上界12元/粒同样查无出处(全网所见最高约8.3元/粒挂牌、成人装促销到手约330元≈5.5元/粒)。\n\n结论：矫正结论\"竞品报告口径正确、PDF无出处应予纠正\"过于绝对且承重论断被证伪，故holds=false。更准确的裁定应为：两数各为不同SKU的片面真相——竞品报告适用于100mg儿童90粒装(实际约4.4-5.5元/粒)，PDF的8元/粒适用于新西兰成人60粒装(招股书\"单颗超8元\")；PDF高估了上限(无12元/粒的SKU)，竞品报告则因遗漏成人高含量装而低估了单价上沿。全品牌真实按粒单价挂牌区间约4.4-8.3元/粒(促销后更低)。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.foodaily.com/articles/38259",
+    "https://www.jiemian.com/article/11964517.html",
+    "https://news.qq.com/rain/a/20241030A044N600",
+    "https://finance.sina.com.cn/tech/roll/2024-11-08/doc-incvisys0661985.shtml"
+   ]
+  }
+ },
+ {
+  "id": "C2",
+  "claim": "纽曼思原料为帝斯曼DSM life's DHA、含量100mg/粒",
+  "original": "报告称纽曼思采用DSM life's DHA原料、100mg/粒",
+  "verdict": "确认",
+  "corrected": "属实。纽曼思藻油DHA采用帝斯曼(荷兰皇家DSM,原Martek)life's DHA金标授权的寇氏隐甲藻油,主流规格100mg/粒,纯度约35-40%。这也是'与多数竞品同源'的原料。",
+  "evidence": "知乎深评及多篇行业稿证实纽曼思用life's DHA(帝斯曼)寇氏隐甲藻油、100mg/粒;派财经指其原料来自帝斯曼'与多数竞品无异'",
+  "confidence": "高",
+  "loadBearing": false,
+  "sources": [
+   "https://zhuanlan.zhihu.com/p/483869548",
+   "http://www.paicaijing314.com/news/1360665.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C3",
+  "claim": "天然博士(Nature's Bay)核心SKU真实剂型是凝胶糖果还是胶囊;竞品报告'凝胶糖果60/120粒(小琥珀)'与PDF'植物胶囊壳'冲突",
+  "original": "竞品报告写'凝胶糖果60/120粒(小琥珀)';PDF写'植物胶囊壳'",
+  "verdict": "修正",
+  "corrected": "竞品报告正确,PDF'植物胶囊壳'错误应纠正。天然博士主力单品即'小琥珀'DHA藻油凝胶糖果(天然琥珀色、卡通造型),规格含45/60/120粒;权威类目名本身就叫'高端DHA藻油凝胶糖果',不存在'植物胶囊壳'剂型。",
+  "evidence": "中婴网、知乎32款品鉴、网易/欧睿类目均标明其为'DHA藻油凝胶糖果'、琥珀色;Euromonitor类目直接称'高端DHA藻油凝胶糖果'",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "剂型(软糖 vs 胶囊)关乎儿童适口性与产品形态定位,属策略性事实",
+  "sources": [
+   "https://m.baobei360.com/product/detail-53738.html",
+   "https://zhuanlan.zhihu.com/p/369065046",
+   "https://m.163.com/dy/article/JTMCUNNM05569IPE.html"
+  ],
+  "adversarial": {
+   "id": "C3",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该矫正结论,反而进一步夯实其方向。反驳尝试与结果:(1)试图用\"软胶囊\"证据推翻\"凝胶糖果\":多个搜索确回返回\"软胶囊/小鱼胶囊/胶囊\"字样,但所有产品挂牌源(苏宁、中婴网baobei360[已引用源]、国际妈咪、搜狐、百度健康)给出的正式品名均为\"天然博士DHA藻油凝胶糖果\",\"凝胶糖果\"是其食品登记/类目名称,竞品报告在此点正确。(2)试图找到天然博士使用\"植物胶囊壳(HPMC)\"的SKU以给PDF开脱:证据完全相反——其外壳为动物明胶(法国罗赛洛药用级牛骨明胶,标榜\"0卡拉胶0人工胶\"),中婴网原料表列明胶/水/甘油/木糖醇。故PDF\"植物胶囊壳\"错在两处:既非以胶囊类目销售(实为凝胶糖果),连物理外壳也是动物明胶而非植物胶囊,矫正方向确立。琥珀色、卡通(小鱼)造型、小琥珀单品均获多源确认。需向上级提示的口径瑕疵(不推翻结论):该产品物理形态确为可扭开/剪开的软明胶胶囊(软胶囊),故\"不存在胶囊剂型\"的绝对表述略欠精确,准确说法应为\"以食品类目'DHA藻油凝胶糖果'销售的动物明胶软胶囊\";另\"45/60/120粒\"仅部分核实(独立确认到30/60/100/240粒,未独立证到45与120),但此细节非承载性,不影响剂型结论。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://product.suning.com/0070711927/10933376607.html",
+    "https://m.baobei360.com/product/detail-53738.html",
+    "https://www.sohu.com/a/963949682_122528565",
+    "https://zhuanlan.zhihu.com/p/1911354853147542809",
+    "https://news.sina.com.cn/sx/2022-08-19/detail-imizirav8878972.shtml"
+   ]
+  }
+ },
+ {
+  "id": "C4",
+  "claim": "天然博士'连续4年销量冠军'",
+  "original": "报告称天然博士连续4年销量冠军",
+  "verdict": "确认",
+  "corrected": "基本属实但需限定口径:据欧睿(Euromonitor)认证,系连续四年'高端DHA藻油凝胶糖果'品类的销量与销售额双第一,2025年扩展为'高端DHA藻油'全国销量、销售额双第一。并非全体DHA/藻油大类冠军,是细分高端凝胶糖果类目冠军。",
+  "evidence": "网易两篇报道引欧睿数据:'连续四年高端DHA藻油凝胶糖果销量、销售额双第一';2025年升级为高端DHA藻油双第一",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "第一方援引欧睿口径,含'高端/凝胶糖果'限定词;榜单当期名次如需精确到店铺/类目实时排名,需实时电商数据复核",
+  "sources": [
+   "https://m.163.com/dy/article/JTMCUNNM05569IPE.html",
+   "https://m.163.com/dy/article/JTTPPNLV05569INE.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C5",
+  "claim": "天然博士约8.6元/粒",
+  "original": "报告称天然博士约8.6元/粒",
+  "verdict": "无法独立验证",
+  "corrected": "处于观测价带偏上端但当日精确值无法定论。小琥珀金标60粒公开价:原价约568元(9.5元/粒)、日常约300元(5.0元/粒)、券后到手198-448元(3.3-7.5元/粒),另见京东392.9元(6.5元/粒)。8.6元/粒(≈516元/60粒)接近原价端,处于合理区间但非当前主流成交价。",
+  "evidence": "什么值得买/值值值等显示小琥珀60粒原价568、日常300、到手198-448、京东392.9元;折算价带约3.3-9.5元/粒",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "需实时电商数据复核当日/当月精确单粒价",
+  "sources": [
+   "https://www.smzdm.com/p/144804646/",
+   "https://www.zhizhizhi.com/n/b709v"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C6",
+  "claim": "天然博士采用寇氏隐甲藻、源自3500+活微藻库",
+  "original": "报告称寇氏隐甲藻/3500+活微藻库",
+  "verdict": "确认",
+  "corrected": "属实。天然博士为国内进口帝斯曼life's DHA金标寇氏隐甲藻油(T油)授权品牌,该藻种系从NASA太空项目筛选的3500余种微藻库中甄选,几乎不含EPA。",
+  "evidence": "中婴网、网易、中华网多篇均述'寇氏隐甲藻''3500余种微藻库''life's DHA金标独家授权'",
+  "confidence": "高",
+  "loadBearing": false,
+  "sources": [
+   "https://m.baobei360.com/product/detail-53738.html",
+   "https://m.tech.china.com/digi/digi/20240102/202401021466108.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C7",
+  "claim": "天然博士2025天猫金婴奖",
+  "original": "报告称天然博士获2025天猫金婴奖",
+  "verdict": "确认",
+  "corrected": "属实。汤臣倍健旗下天然博士(小琥珀DHA)为2025年天猫金婴奖得主。",
+  "evidence": "网易'2025婴童DHA品牌TOP10'等报道明确列天然博士为2025天猫金婴奖得主",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "来源为行业媒体转述,未逐一比对天猫官方获奖名单原件",
+  "sources": [
+   "https://c.m.163.com/news/a/K998PAD505567BVI.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C8",
+  "claim": "天然博士与中国航天联名",
+  "original": "报告称天然博士有中国航天联名",
+  "verdict": "确认",
+  "corrected": "属实且有官媒背书。天然博士为'中国航天太空创想'官方合作伙伴/中国航天文创产业联盟签约品牌,已推出多款航天主题DHA藻油礼盒并亮相珠海航展。",
+  "evidence": "中国日报网多篇:'天然博士再次携手中国航天太空创想''加入中国航天文创产业联盟,亮相珠海航展'",
+  "confidence": "高",
+  "loadBearing": false,
+  "sources": [
+   "http://cn.chinadaily.com.cn/a/202311/10/WS654dc245a310d5acd876e446.html",
+   "https://caijing.chinadaily.com.cn/a/202211/17/WS63760638a3109bd995a50945.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C9",
+  "claim": "Bio Island(佰澳朗德)TGA认证、100mg/粒",
+  "original": "报告称Bio Island TGA认证、100mg/粒",
+  "verdict": "确认",
+  "corrected": "属实。Bio Island为澳大利亚JBX旗下品牌,全系列按TGA标准生产/认证;婴幼儿DHA为60粒装,每粒含250mg裂壶藻(Schizochytrium)藻油,折合高纯度DHA约100mg/粒。",
+  "evidence": "百度百科及澳洲电商页:JBX旗下、TGA认证;directchemist/ausomg商品页标明每粒250mg藻油=100mg DHA、60粒/瓶",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "藻种为裂壶藻而非寇氏隐甲藻,与纽曼思/天然博士不同源;报告未指明藻种,无冲突",
+  "sources": [
+   "https://baike.baidu.com/item/bioisland/55623330",
+   "https://directchemistoutlet.cn/9084.html",
+   "https://www.ausomg.com/wechat/goods/detail.htm?id=1739"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C10",
+  "claim": "Bio Island DHA采用超临界CO2萃取工艺",
+  "original": "报告称Bio Island超临界CO2萃取",
+  "verdict": "存疑",
+  "corrected": "未能证实。多方检索(含官方介绍、电商页、百科)均未见Bio Island DHA标注'超临界CO2萃取'工艺;仅泛述天然原料+GMP产线。该工艺描述查无公开出处,不排除为报告臆测或与他牌混淆。",
+  "evidence": "针对性搜索仅检出其他品牌(如澳乐乳)提'裂壶藻油提取',无Bio Island超临界CO2萃取记录;官方仅称GMP产线",
+  "confidence": "中",
+  "loadBearing": false,
+  "sources": [
+   "https://baike.baidu.com/item/bioisland/55623330",
+   "https://www.zhihu.com/question/26191819"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C11",
+  "claim": "Bio Island促销约0.79元/粒(142.78元/3瓶)、100mg/粒",
+  "original": "报告称Bio Island促销约0.79元/粒(142.78元/3瓶)",
+  "verdict": "无法独立验证",
+  "corrected": "内部算数自洽(3瓶×60粒=180粒,142.78/180≈0.793元/粒),100mg/粒亦成立;但142.78元/3瓶属特定时点拼团/买赠促销价,折合约47.6元/瓶(远低于常规约60-100+元/瓶),无公开固定出处,须以实时电商后台核验。",
+  "evidence": "每粒100mg已确认(见C9);0.79元/粒对应的3瓶142.78元为促销价,常规单瓶价明显更高,当日价无稳定公开源",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "需实时电商数据复核当日/当月促销单价",
+  "sources": [
+   "https://directchemistoutlet.cn/9084.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C12",
+  "claim": "强贝冠'七效合一':DHA+亚麻籽油+核桃油+N-乙酰神经氨酸",
+  "original": "报告称强贝冠七效合一含DHA+亚麻籽油+核桃油+N-乙酰神经氨酸",
+  "verdict": "确认",
+  "corrected": "报告所列4种成分均在其配方内,属实但为部分列举。完整'七效'为:藻油DHA+亚麻籽油+核桃油+花生四烯酸(ARA)+N-乙酰神经氨酸(唾液酸)+低聚异麦芽糖+天然甜橙油,100mg高纯度DHA/粒。",
+  "evidence": "多篇品牌稿列出七种成分,含报告点名的DHA、亚麻籽油、核桃油、N-乙酰神经氨酸",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "来源多为搜狐/品牌软文(白皮书/排行榜类SEO稿),缺独立第三方核验,可信度中等",
+  "sources": [
+   "https://www.sohu.com/a/976300078_122502753",
+   "https://www.sohu.com/a/988120672_121973087"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C13",
+  "claim": "强贝冠BRC认证、太平洋保险承保",
+  "original": "报告称强贝冠BRC认证、太平洋保险承保",
+  "verdict": "确认",
+  "corrected": "多篇品牌资料一致声称'山东科举药业+美国森格瑞制药联合研发,BRC认证+太平洋保险承保',但所有出处均为品牌自发布软文,无独立机构/保单/认证编号佐证,建议按'品牌自述'看待。",
+  "evidence": "搜狐系多篇均述BRC认证+太平洋保险承保,信息同源于品牌PR;另有SC/FSSC22000/Halal等表述",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "仅品牌软文单一来源链,未见独立核验,谨慎采信",
+  "sources": [
+   "https://www.sohu.com/a/967982457_121769803",
+   "https://www.sohu.com/a/976300078_122502753"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C14",
+  "claim": "强贝冠约4-7元/粒、凝胶糖果剂型",
+  "original": "报告称强贝冠约4-7元/粒、凝胶糖果剂型",
+  "verdict": "修正",
+  "corrected": "剂型确认为凝胶糖果(山梨糖醇/甘油基质、无腥味软糖);但价格偏高应修正:官方统一零售价198元/盒(60粒)≈3.3元/粒,低于报告4-7元/粒区间。报告价带上沿无对应公开售价。",
+  "evidence": "品牌稿:凝胶糖果剂型;全国统一价198元/盒60粒装→3.3元/粒",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "仅品牌自营渠道(京东/淘宝/拼多多旗舰店)公开价,当日成交价需实时电商复核",
+  "sources": [
+   "https://www.sohu.com/a/988120672_121973087",
+   "https://www.sohu.com/a/976300078_122502753"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C15",
+  "claim": "ChildLife(童年时光)为滴剂剂型",
+  "original": "报告称ChildLife为滴剂",
+  "verdict": "确认",
+  "corrected": "属实。ChildLife标志性藻油DHA为液体滴剂(甜橙味,1-12岁,便于精准滴喂)。需注意其产品线同时存在软胶囊版(如DHA小金珠90粒),故'ChildLife=滴剂'指其招牌液体DHA,并非唯一剂型。",
+  "evidence": "知乎测评及海淘资料:ChildLife藻油DHA为液体滴剂;什么值得买另见其DHA软胶囊90粒SKU",
+  "confidence": "中",
+  "loadBearing": false,
+  "sources": [
+   "https://zhuanlan.zhihu.com/p/4544726402",
+   "https://www.jd.com/pinpai/7055-53915.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C16",
+  "claim": "英珞维:MCT油基质、微囊技术、纯度45%+",
+  "original": "报告称英珞维MCT油基质、微囊技术、纯度45%+",
+  "verdict": "修正",
+  "corrected": "纯度偏高需修正,MCT基质与微囊技术存疑。公开产品资料一致标英珞维藻油DHA为寇氏隐甲藻(马泰克/life's DHA品质)、纯度约40%(非45%+)、150mg/粒、甜橙味凝胶糖果;'MCT油基质''微囊/微囊化技术'在任何公开产品页均未见标注,查无出处。(注:部分电商标题写'裂壶藻',藻种描述亦有分歧。)",
+  "evidence": "中婴网产品页:寇氏隐甲藻、纯度40%、150mg/粒、凝胶糖果;针对性检索未检出英珞维MCT基质或微囊技术描述",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "MCT基质与微囊技术若为报告采信的品牌宣称,建议向厂方索取规格书佐证",
+  "sources": [
+   "https://m.baobei360.com/product/item-101596.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "C17",
+  "claim": "英珞维约6-9元/粒",
+  "original": "报告称英珞维6-9元/粒",
+  "verdict": "存疑",
+  "corrected": "公开可见价明显低于报告区间:DHA+ARA藻油60粒券后约258.8-278.8元≈4.3-4.6元/粒(促销)。若按更高吊牌价(约358-458元)方可触及6-7.6元/粒,但未见稳定公开原价支撑6-9元/粒;当前实际单价须以实时电商核验。",
+  "evidence": "什么值得买多条:60粒258.8元(需券)、259.07元、278.8元→约4.3-4.6元/粒",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "需实时电商数据复核当日原价/成交价",
+  "sources": [
+   "https://www.smzdm.com/p/126827917/",
+   "https://www.smzdm.com/p/127229439/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D1",
+  "claim": "EZZ 在澳交所(ASX)悉尼上市,股票代码 EZZ",
+  "original": "报告称 EZZ 为 ASX:EZZ,悉尼上市的澳洲品牌",
+  "verdict": "确认",
+  "corrected": "EZZ Life Science Holdings 于 2021年3月3日在澳大利亚证券交易所(ASX)主板挂牌,股票代码 EZZ;公司总部位于新南威尔士州 Silverwater(大悉尼地区)。'悉尼上市'的口径成立(ASX 主市场在悉尼,总部亦在悉尼都会区)。",
+  "evidence": "Stockhead 上市报道、中国日报网、凤凰网、网易财经及多家澳股行情站(marketindex/listcorp/tradingview)一致显示 ASX 代码 EZZ、2021-03-03 挂牌、总部 Silverwater NSW。",
+  "confidence": "高",
+  "loadBearing": false,
+  "sources": [
+   "https://stockhead.com.au/health/transformative-ezz-achieves-milestone-biotech-and-life-sciences-listing-on-asx/",
+   "https://tech.chinadaily.com.cn/a/202111/16/WS61930df5a3107be4979f85d3.html",
+   "https://tech.ifeng.com/c/83OffM0uhZP",
+   "https://www.marketindex.com.au/asx/ezz"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D2",
+  "claim": "EZZ 以 NMN 起家",
+  "original": "报告称 EZZ 以 NMN 起家",
+  "verdict": "修正",
+  "corrected": "对'EZZ品牌'而言基本成立:EZZ 品牌 2018 年成立,被业界包装为'NMN全球第一股',NMN(NMN175000/NAD+)为其旗舰爆品。但需注意:上市主体 EZZ Life Science Holdings 旗下有两大品牌——面膜品牌 EAORON(澳洲/新西兰面膜市场份额一度约25.3%)与保健品牌 EZZ,公司营收基本盘很大程度依赖 EAORON 面膜业务。因此严格说'集团起家'并非单纯 NMN;'EZZ 保健品牌以 NMN 打响'才是准确表述。",
+  "evidence": "网易/凤凰专题《起底NMN全球第一股EZZ》、中国日报网报道均指出集团双品牌结构(EAORON 面膜 + EZZ 保健),EZZ 品牌以 NMN 为核心概念,2021-03-03 上市。",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "如报告后续把 EZZ 定位为'纯 NMN/保健品公司'并据此估其体量,应扣除 EAORON 面膜业务口径。",
+  "sources": [
+   "https://www.163.com/dy/article/G3P7K21S051982PD.html",
+   "https://tech.ifeng.com/c/83OffM0uhZP",
+   "https://baike.baidu.com/item/EZZ/56680031"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D3",
+  "claim": "EZZ 有'藻油DHA脑力素3.0'儿童青少年产品,含磷脂酰丝氨酸PS/神经酸/叶黄素版本",
+  "original": "报告称 EZZ 有藻油DHA脑力素3.0,分 PS版/神经酸版/叶黄素版",
+  "verdict": "确认",
+  "corrected": "核心成立但细节部分未能逐一溯源:EZZ 确有面向 6-18 岁儿童青少年的藻油DHA'(综合)脑力素'产品,且含磷脂酰丝氨酸(PS)配方版;EZZ 另有独立的'神经酸'产品线。'叶黄素版'与具体'3.0'代际命名在公开电商/评测源中未能独立坐实,属产品页级细节,建议以官方SKU页复核。",
+  "evidence": "什么值得买商品词条'EZZ藻油DHA 60粒 记忆力儿童青少年 磷脂酰氨酸 澳洲综合脑力素'及多篇 smzdm/京东国际条目确认 DHA+PS 儿童版;搜索另见 EZZ 神经酸产品。'3.0'与'叶黄素版'未见可靠一手源。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "'3.0'代际与叶黄素版SKU需以 EZZ 天猫国际官方旗舰店页面确认。",
+  "sources": [
+   "https://wiki.smzdm.com/p/ynp83ow/",
+   "https://post.smzdm.com/p/ag567mz6/",
+   "https://www.smzdm.com/p/120154410/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D4",
+  "claim": "EZZ 2020年前后入华",
+  "original": "报告称 EZZ 约 2020 年进入中国市场",
+  "verdict": "确认",
+  "corrected": "成立。EZZ 约 2020 年经天猫国际等跨境电商进入中国:百度百科载其 2020年11月获天猫国际奖项、2021 年参加进博会与消博会,时间线与'2020年前后入华'吻合。",
+  "evidence": "EZZ 百度百科词条(2018年12月品牌成立;2020-11 天猫国际奖;2021 进博会/消博会);多篇报道称其保健品进入天猫国际等中国跨境平台。",
+  "confidence": "高",
+  "loadBearing": false,
+  "sources": [
+   "https://baike.baidu.com/item/EZZ/56680031",
+   "https://tech.chinadaily.com.cn/a/202111/16/WS61930df5a3107be4979f85d3.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D5",
+  "claim": "EZZ 无小球藻/绿粉产品线",
+  "original": "报告称 EZZ 没有小球藻/绿粉产品线",
+  "verdict": "确认",
+  "corrected": "在可查产品目录范围内成立。EZZ 公开品类为:NMN/NAD+、藻油DHA脑力素、神经酸、赖氨酸成长丸、益生菌、口服美容、女性健康、HPV、护发等,未见小球藻(chlorella)/绿粉(green powder)类产品。属'未见即无'的负向判断,置信度中。",
+  "evidence": "EZZ 百度百科品类列表、smzdm EZZ 品牌页及成长丸/DHA/NMN 等条目,均无小球藻/绿粉品项。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "负向结论;若用于'与百健士品类不重叠'的策略论证,建议以 EZZ 官网全品类页最终确认。",
+  "sources": [
+   "https://baike.baidu.com/item/EZZ/56680031",
+   "https://pinpai.smzdm.com/288001/",
+   "https://post.smzdm.com/p/al9p0z90/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D6",
+  "claim": "EZZ 天猫海外旗舰店 DHA 月销 500+",
+  "original": "报告称 EZZ DHA 天猫海外旗舰店月销 500+",
+  "verdict": "无法独立验证",
+  "corrected": "月销数据须以实时电商后台/店铺页为准,本会话无电商数据接口,无法证实或证伪具体'500+'。",
+  "evidence": "属店铺当月销量类指标,公开评测/新闻源不含可核销量。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "需实时电商数据复核(SocialDataX/店铺后台)。",
+  "sources": [],
+  "adversarial": null
+ },
+ {
+  "id": "D7",
+  "claim": "EZZ DHA '3瓶¥469.3(约¥2.6/粒)'当日价",
+  "original": "报告称 EZZ DHA 3瓶 469.3 元、约 2.6 元/粒",
+  "verdict": "无法独立验证",
+  "corrected": "属当日促销价,随券/活动波动,须实时电商页复核。旁证显示价格区间波动明显:京东国际曾见 1瓶206元、3瓶385.5元(需券)、及3瓶券后约178.6元/瓶等不同报价,与报告的469.3元/3瓶并不一致,进一步说明单一时点价不可静态引用。",
+  "evidence": "smzdm 聚合的多条 EZZ DHA 京东国际报价(206元/瓶、385.5元/3瓶、178.6元/瓶券后等)显示价格随促销大幅变动。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "需实时电商数据复核;报告若用固定单价做毛利/性价比测算存在口径风险。",
+  "sources": [
+   "https://www.smzdm.com/p/120719672/",
+   "https://www.smzdm.com/p/120154410/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D8",
+  "claim": "EZZ 藻油DHA 纯度 50%",
+  "original": "报告称 EZZ DHA 纯度 50%",
+  "verdict": "存疑",
+  "corrected": "未能在公开一手源中找到 EZZ 藻油DHA'纯度50%'的明确标注,查无出处故存疑。作对照:同赛道健敏思眼脑DHA公开宣称藻油纯度约80%,故50%若成立则相对偏低,更需以 EZZ 产品成分表坐实。",
+  "evidence": "多轮检索未见 EZZ 官方或评测明确标 DHA 纯度50%;对照源见健敏思纯度80%的公开表述。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "建议以 EZZ 产品营养成分表/规格页核对纯度口径(是否指藻油中DHA占比)。",
+  "sources": [
+   "https://zhuanlan.zhihu.com/p/582178838"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D9",
+  "claim": "EZZ '覆盖500万+家庭'",
+  "original": "报告称 EZZ DHA 覆盖 500万+家庭",
+  "verdict": "存疑",
+  "corrected": "属品牌营销话术,无独立可核来源。电商详情中可见类似营销语(如'90%家庭选择')但均为宣传口径,非可审计数据;'500万+家庭'查无第三方佐证,列为存疑。",
+  "evidence": "京东/smzdm 商品条目出现'90%家庭选择'等宣传标语,未见'500万家庭'的可核出处。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "属宣传性数字,不宜作为市场渗透率证据引用。",
+  "sources": [
+   "https://www.smzdm.com/p/120662893/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D10",
+  "claim": "金达威真实定位:以辅酶Q10与原料供应为主,还是有面向C端的热销DHA藻油终端品牌?",
+  "original": "报告一度把金达威列为鱼油/藻油DHA主要(终端)玩家,又自注'终端DHA藻油存在感待核实,以辅酶Q10和原料供应为主'",
+  "verdict": "确认",
+  "corrected": "报告的自注是准确的,应采纳自注、放弃'终端DHA藻油主要玩家'的初判。金达威(002626.SZ,厦门金达威/Kingdomway)本质是以合成生物为核心的上游原料巨头:全球最大辅酶Q10生产商,并为维生素A/D3、微藻DHA、ARA 等原料主要供应商;营收结构约为营养保健食品60.6%、辅酶Q10约22.4%、维生素A系列约8.4%。其确有C端终端品牌,但来自海外收购的 Doctor's Best(多特倍斯)、Vitatech、Zipfizz、Viactiv、RxSugar 等,主打辅酶Q10/NMN/基础营养,经跨境电商入华;并无一个'热销的C端儿童DHA藻油终端品牌'。故金达威是'DHA原料/上游玩家',而非'终端DHA藻油爆品品牌'。",
+  "evidence": "同花顺/东方财富经营分析、新浪财经(辅酶Q10产销两旺)确认其原料主业与营收结构;Foodaily/界面新闻记载 2015 起收购 Doctor's Best(增持至97.51%)、Vitatech 等构建海外终端矩阵,主品类为辅酶Q10/NMN,经天猫/京东国际/抖音跨境入华。",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "'营养保健食品60%'含原料+终端合计,不等于C端品牌规模,勿据此高估其终端DHA存在感。竞品图谱中金达威应归入'DHA上游原料'一格。",
+  "sources": [
+   "https://basic.10jqka.com.cn/002626/operate.html",
+   "https://caifuhao.eastmoney.com/news/20250618102540075130310",
+   "https://www.foodaily.com/articles/18246",
+   "https://www.jiemian.com/article/10774162.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "D11",
+  "claim": "儿童'叶黄素+DHA二合一'赛道:仅健敏思、健乐视做二合一,玩家<5",
+  "original": "报告称二合一赛道仅健敏思、健乐视两家,赛道玩家<5、竞品极少",
+  "verdict": "修正",
+  "corrected": "明显低估,'玩家<5/仅两家'不成立。'叶黄素+DHA同品'在儿童护眼/健脑赛道已相当拥挤,至少可点名:健敏思(眼脑DHA,DHA220mg+叶黄素4mg+PS+玉米黄质)、健乐视(小怪兽,藻油DHA+叶黄素5:1)、家得路CATALO(儿童DHA叶黄素双效鱼油,FloraGLO专利叶黄素)、宝得聪(藻油DHA+玉米黄质+花青素)、珍悦目(意大利,叶黄素+深海鱼油DHA/EPA),以及一批'补脑DHA加叶黄素/护眼叶黄素加DHA'的复配品在天猫/京东/小红书大量存在。二合一实际玩家应按≥5-6家甚至更多计,'竞品极少/蓝海'的策略前提需推翻或重估。",
+  "evidence": "smzdm 16款儿童叶黄素横评(健乐视/宝得聪/呐兔/珍悦目等)、中华网 CATALO 儿童DHA叶黄素双效鱼油报道、知乎/新华报业健敏思眼脑DHA(含叶黄素)成分披露、多篇2025-2026儿童DHA/叶黄素测评均显示DHA+叶黄素复配已成主流配方方向。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "此为策略承重项:若据'二合一竞品极少'定'蓝海切入',与实际拥挤度冲突,需重做竞品密度与差异化定位。",
+  "sources": [
+   "https://post.smzdm.com/p/a5x7l7z8/",
+   "https://m.tech.china.com/hea/article/20241216/122024_1617100.html",
+   "https://zhuanlan.zhihu.com/p/582178838",
+   "https://zhuanlan.zhihu.com/p/7832419465"
+  ],
+  "adversarial": {
+   "id": "D11",
+   "holds": true,
+   "reason": "对抗式反驳失败,矫正结论稳固成立。逐一独立核实被点名品牌均为真实的\"DHA+叶黄素同品\"复配:家得路CATALO「儿童DHA叶黄素双效鱼油」(中华网原文,FloraGLO专利叶黄素+DHA);健敏思「眼脑DHA」(新华报业,DHA220mg+PS40mg+叶黄素4mg+玉米黄质0.8mg+VA,与原文吻合);健乐视小怪兽(DHA+BASF专利叶黄素酯+玉米黄质5:1+ARA+花青素);珍悦目brieye(意大利,鱼油DHA/EPA+叶黄素+玉米黄质);宝得聪(海藻DHA+叶黄素酯+玉米黄质+蓝莓花青素)。此外独立同类品还有养能健(藻油DHA+叶黄素酯+VA)、爱立维(DHA+叶黄素+玉米黄质)、ChildLife、iHDoc、Life's DHA Kids with Lutein等,DHA+叶黄素复配确为2025-2026儿童护眼/健脑赛道的主流配方方向。新京报行业稿《儿童市场成必争之地,尚无龙头品牌领航》进一步佐证该品类拥挤、竞争激烈,直接推翻\"竞品极少/蓝海\"前提。唯一可挑的口径漏洞:若把\"二合一\"极严格解读为\"仅叶黄素+DHA两成分、别无添加\",则健敏思(4成分)、宝得聪(4成分)属多合一而非严格二合一;但即使按此严格口径,DHA+叶黄素同品玩家仍明显>2且达≥5家,且成分堆叠越多越印证赛道拥挤,反而更强化而非削弱矫正结论。原报告\"仅健敏思、健乐视两家/玩家<5\"确属明显低估,作为承重策略项(\"蓝海切入\")需重估。smzdm原文(16款横评)因反爬直接抓取返回空,但多引擎检索快照均确认其标题及健乐视/宝得聪/呐兔/珍悦目均在测评之列,来源真实。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://m.tech.china.com/hea/article/20241216/122024_1617100.html",
+    "https://www.xhby.net/content/s6904747be4b060952fb56491.html",
+    "https://post.smzdm.com/p/a5x7l7z8/",
+    "https://zhuanlan.zhihu.com/p/639804018",
+    "https://www.sohu.com/a/991685898_122565714",
+    "https://m.bjnews.com.cn/detail/1753406786168965.html"
+   ]
+  }
+ },
+ {
+  "id": "E1",
+  "claim": "2026年1月，市场监管总局要求跨境电商下架无蓝帽子的鱼油/磷虾油/DHA藻油凝胶糖果，依据GB17399《糖果》食品安全国家标准。",
+  "original": "报告：2026年1月凝胶糖果监管——市场监管总局要求跨境电商下架无蓝帽子的鱼油/磷虾油/DHA藻油凝胶糖果，依据GB17399《糖果》食品安全国家标准。",
+  "verdict": "确认",
+  "corrected": "监管实质属实：以GB17399《食品安全国家标准 糖果》为由头、清退'披糖果外衣'的无蓝帽子鱼油/磷虾油/DHA藻油凝胶糖果，是2025年底至2026年持续推进的一场多部门整治，而非某一份'2026年1月市场监管总局单独公告'。可核实的时间线：贸易合规媒体(东方财富财富号2026-01-12等)称'2025年12月起总局对部分热门商品发出下架指令，理由不符合GB17399'；21经济网2026-04-28证实存在'鱼油执行标准竟标GB17399=披着鱼油外衣的糖果'现象；2026-02-13市场监管总局与商务部联合发布《关于进一步加强跨境电商零售进口食品召回监管的公告》；2026-04国务院食安办、市场监管总局、海关总署约谈抖音/淘宝/小红书三平台并开展网络食品虚假宣传专项整治。未检索到单一带文号的'凝胶糖果下架'官方原始公告，'市场监管总局'系媒体转述的'总局'。",
+  "evidence": "GB17399作为糖果标准被违规产品滥用、以及平台清退无蓝帽子同类凝胶糖果，均有21经济网、东方财富、AMZ123、网易、光明网、扬子晚报等多源交叉印证；GB17399基础与下架事实成立，唯'单份2026年1月SAMR公告'的精确表述属贸易媒体综合，未找到官方原始文件文号。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "GB17399依据与'无蓝帽子凝胶糖果被清退'为高可信；'2026年1月单一SAMR公告'的精确定性为中，宜表述为2025Q4-2026持续性多部门整治。",
+  "sources": [
+   "https://www.21jingji.com/article/20260428/herald/84fa94a5f51bd60aa826893487979a5b.html",
+   "https://caifuhao.eastmoney.com/news/20260112180006714059410",
+   "https://www.yzwb.net/news/txs/202604/t20260402_338248.html",
+   "https://legal.gmw.cn/2026-04/29/content_38743601.htm",
+   "https://www.cnstock.com/commonDetail/638890"
+  ],
+  "adversarial": {
+   "id": "E1",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该矫正结论，反而多源印证其成立，故 holds=true。逐柱验证：(1) GB17399 确为《食品安全国家标准 糖果》(GB 17399-2016，2017-06-23 实施)，鱼油/藻油产品以糖果标准\"披皮\"被滥用的现象有央视 2025-06 曝光、21经济网、腾讯、网易交叉印证——高可信。(2) 抓取东方财富财富号 2026-01-12 原文逐字确认\"2025年12月开始，总局针对部分热门商品发出重要监管指令……理由：不符合《食品安全国家标准 糖果》(GB17399)规定\"，并列举磷虾油/鱼油/DHA藻油凝胶糖果；但该文作者系保税仓服务商，属解读而非官方原始文件，文中仅称\"总局\"未点名 SAMR 全称——正好坐实矫正结论\"'市场监管总局'系媒体转述、无带文号原始公告\"的让步。(3) 2026-02-13 SAMR+商务部联合公告已在 samr.gov.cn 官网原文核到(2026年第1号，召回监管通用公告，非专门下架令)。(4) 2026-04-02 国务院食安办+市场监管总局+海关总署约谈抖音/淘天/小红书，系\"优思益\"澳洲原产地造假案，属同期整治。(5) 关键反驳尝试:专门检索\"2026年1月市场监管总局单独、带文号的凝胶糖果下架官方公告\"——查无此文件；2026年1月对应动作实为抖音平台自发的《跨境膳食补充剂专项治理公告》(非 SAMR)。此发现只削弱\"原报告\"的精确表述，反而强化矫正结论。矫正结论已诚实披露唯一软肋(具体\"凝胶糖果下架指令\"主要依赖单一贸易媒体、缺官方文号)，故维持\"中\"置信，不上调至\"高\"。",
+   "adjustedConfidence": "中",
+   "sources": [
+    "https://caifuhao.eastmoney.com/news/20260112180006714059410",
+    "https://www.samr.gov.cn/zw/zfxxgk/fdzdgknr/spcjs/art/2026/art_b0bcafe73bf747279b27cef39d04e6b1.html",
+    "https://www.21jingji.com/article/20260428/herald/84fa94a5f51bd60aa826893487979a5b.html",
+    "https://news.qq.com/rain/a/20260427A05PC900",
+    "https://www.yangtse.com/news/txs/202604/t20260402_338248.html",
+    "https://www.cirs-group.com/cn/food/gb-17399-2016-spaqgjbz-tg",
+    "https://www.chinanews.com.cn/cj/2026/02-13/10572029.shtml"
+   ]
+  }
+ },
+ {
+  "id": "E1b",
+  "claim": "仙芳思等合规凝胶糖果2026年6月仍在售。",
+  "original": "报告：仙芳思等合规凝胶糖果在整治后于2026年6月仍在售。",
+  "verdict": "无法独立验证",
+  "corrected": "该子论断需查询天猫/京东/抖音等平台的实时在售状态与SKU上下架记录才能确认，本会话无电商数据接口，无法独立核实。",
+  "evidence": "属'某店铺/某SKU当月是否在售'类问题，只能靠实时电商后台数据确认；本会话SocialDataX未配置、无电商数据API。",
+  "confidence": "低",
+  "loadBearing": false,
+  "note": "需实时电商数据复核。",
+  "sources": [],
+  "adversarial": null
+ },
+ {
+  "id": "E2",
+  "claim": "蓝帽子准入：注册1-3年/30-80万；备案6-12月/10-20万；跨境电商备案2-4月/3-8万。",
+  "original": "报告：注册周期1-3年、成本30-80万；备案6-12月、10-20万；跨境电商备案2-4月、3-8万。",
+  "verdict": "确认",
+  "corrected": "周期与成本量级总体符合行业公开信息，可用。细化：备案6-12个月与多源(中贸合规中心等)完全一致；跨境电商'零售进口'确为最低门槛(仅需中文标签备案/海关注册，约2-3个月、成本最低)，2-4月/3-8万量级合理。注册端偏乐观——国产功能性注册常引为2-3年，进口功能性产品多被引为3-5年(含技术审评、现场核查)，单品总投入高端可达50-100万；故'1-3年/30-80万'宜标注为'下限/顺利情形'。",
+  "evidence": "中贸合规中心明确'备案需6-12个月';多篇申报手册显示注册检验8-14个月+技术审评，进口功能性常见3-5年，检测费5-30万、加代理/翻译公证等单品可达数十万至上百万;跨境零售进口免蓝帽子、仅标签备案约2-3个月。量级吻合。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "注册周期/成本取的是乐观下限，进口功能性产品实际常更长更贵(约3-5年、可达~100万)。",
+  "sources": [
+   "https://www.zmuni.com/zh-hans/news/2025niandupandianbaojianshipinzhucebeianbeianshuliangx/",
+   "https://www.tmogroup.com.cn/insights/china-blue-hat-certification/",
+   "https://zhuanlan.zhihu.com/p/144388496"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "E3",
+  "claim": "2025年进口保健食品注册重启(7年来首次)，6款产品获批蓝帽子。",
+  "original": "报告：2025年进口保健食品注册重启，为7年来首次，6款产品获批蓝帽子。",
+  "verdict": "确认",
+  "corrected": "属实。2025年共6款进口保健食品获注册批件，打破2018-2024年间进口注册'零获批'局面(约7年来首次破冰)。6款来自3家企业：中国香港莱特维健药厂4款、新加坡谢氏生技1款、印尼荷尔梅斯1款；剂型以胶囊为主，功能涉及增强免疫力、维持血脂健康、化学性肝损伤辅助保护、缓解视觉疲劳。",
+  "evidence": "中贸合规中心《2025年度盘点》原文'6款进口保健食品获得注册批件，打破2018年-2024年间零获批局面';搜狐《2025，谁在注册蓝帽子》与中婴网同口径印证企业与款数。",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "'7年来首次'系相对2018-2024零获批的通俗表述，与来源一致。",
+  "sources": [
+   "https://www.zmuni.com/zh-hans/news/2025niandupandianbaojianshipinzhucebeianbeianshuliangx/",
+   "https://m.sohu.com/a/975705466_121123881/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "E4",
+  "claim": "藻油DHA目前无独立国家标准、参照GB17399等通用食品标准执行。",
+  "original": "报告：藻油DHA目前无独立国家标准，参照GB17399等通用食品标准执行。",
+  "verdict": "修正",
+  "corrected": "表述不准确，两处需改。①并非'无标准可依'：虽无单独冠名'DHA藻油'的国家产品标准(GB)，但发酵法DHA油脂有国家食品安全标准GB 26400-2011(食品添加剂 二十二碳六烯酸油脂发酵法，已由GB 1903.66-2024食品营养强化剂版替代)，另有粮食行业标准LS/T 3243-2015《DHA藻油》，且自2023年DHA藻油已列入《保健食品原料目录 营养素补充剂(2023年版)》并有技术要求；辅料须符合GB 2760。②'参照GB17399执行'是误述:GB17399是《糖果》标准，恰是违规'披糖果外衣'产品滥用来规避保健食品管理的标准，属违规标注而非藻油DHA的合规参照。合规普通食品/保健食品应依上述DHA油脂/原料目录及相应食品安全标准，而非糖果标准。",
+  "evidence": "全国标准信息平台/食典通显示LS/T 3243-2015《DHA藻油》为粮食行业标准(国家粮食局归口,2015实施);科信中心/食品伙伴网显示GB 26400-2011为食品添加剂国家标准、已被GB 1903.66-2024取代;中贸合规中心指DHA藻油纳入2023版保健食品原料目录、辅料依GB 2760;21经济网证实GB17399系被违规产品滥用的糖果标准。",
+  "confidence": "高",
+  "loadBearing": false,
+  "note": "把糖果标准GB17399说成藻油DHA的合规参照，正好把'违规滥标'当成了'正常执行标准'，方向反了。",
+  "sources": [
+   "https://www.sdtdata.com/fx/fcv1/tsLibCard/154733.html",
+   "http://www.kexinzhongxin.com/html/biaozhun/1587.html",
+   "http://down.foodmate.net/standard/sort/3/151293.html",
+   "https://www.zmuni.com/zh-hans/news/jin-kou-dha-zao-you-chan-pin-he-gui-gong-lue/"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "E5",
+  "claim": "日本福岛核污染水排海启动时间为2023年8月。",
+  "original": "报告：日本核废水排海启动时间'2023年8月'(策略核心叙事时间锚点)。",
+  "verdict": "确认",
+  "corrected": "准确。日本政府于2023年8月22日内阁会议决定，并于2023年8月24日单方面启动福岛第一核电站核污染水排海。'2023年8月'的时间锚点成立。",
+  "evidence": "新华社2023-08-22《日本政府决定8月24日启动福岛核污染水排海》及2023-08-24《日本核污染水排海进程时间线》、中国外交部及国家原子能机构通稿均记载8月24日启动。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "作为策略核心叙事的时间锚点，日期精确到2023-08-24，可放心引用。",
+  "sources": [
+   "http://www.news.cn/world/2023-08/22/c_1129816089.htm",
+   "http://www.news.cn/world/2023-08/24/c_1129820493.htm"
+  ],
+  "adversarial": {
+   "id": "E5",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该结论,反而得到多源交叉印证。我尝试的反驳路径:(1)寻找相反的启动日期——新华网(2023-08-22决定稿、2023-08-24时间线稿)、中国外交部2023-08-24发言人谈话、IAEA官网及英文维基百科(Wikipedia)一致记载物理排海于2023年8月24日当地时间下午1时启动,无任何可信源给出不同日期;(2)口径漏洞检查——唯一可混淆点是把\"2021年4月日本政府批准排海方案\"或\"IAEA 2023-07-04安全评估报告发布\"误当作\"启动\",但这两者是决策/评估节点而非实际排海,不影响\"2023年8月\"作为物理启动的时间锚点;(3)\"决定vs启动\"的区分也已被原结论正确处理(8月22日内阁决定、8月24日启动)。综上,\"2023年8月\"锚点成立,精确日期2023-08-24可放心引用,原\"确认\"裁定维持。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "http://www.news.cn/world/2023-08/22/c_1129816089.htm",
+    "http://www.news.cn/world/2023-08/24/c_1129820493.htm",
+    "https://www.mfa.gov.cn/fyrbt_673021/dhdw_673027/202308/t20230824_11131280.shtml",
+    "https://en.wikipedia.org/wiki/Discharge_of_radioactive_water_of_the_Fukushima_Daiichi_Nuclear_Power_Plant"
+   ]
+  }
+ },
+ {
+  "id": "F1",
+  "claim": "存在一条'百度健康官方建议:对风险敏感的人群可选择藻类DHA(非鱼类提取,无海洋污染风险)或其他补充剂',作为洞察0的权威背书。",
+  "original": "报告反复把该句作为'百度健康官方建议'引用,当作整套'核废水=鱼油软肋'叙事的权威背书支点。",
+  "verdict": "修正",
+  "corrected": "百度健康平台(health.baidu.com)确有多篇文章表达'藻类DHA封闭培养、无海洋污染富集风险、更适合孕妇/婴幼儿/敏感人群'的观点,且与主流营养学共识一致;但(1)未找到与报告完全一致的原文措辞,系转述/重构而非原句;(2)相关页面明确标注'百度健康基于AI生成经专家审阅',并带明显产品推介口吻,属AI科普/软文性质,并非卫健委等权威机构或官方指南的'官方建议'。把它包装成权威背书夸大了来源效力。",
+  "evidence": "实抓 health.baidu.com/m/detail/ar_6101607293337506215 显示正文有'藻类在封闭环境中培养,重金属(如汞)和海洋污染物风险极低''适合素食者、过敏体质、孕妇、婴幼儿'等表述,但页首标注'百度健康基于AI生成经专家审阅',整体为优势列举+引导购买的软文式科普;搜索到的百度健康相关条目还包含'DHA品牌排行榜第一植物诀藻油'等明显商业榜单。均无与报告一字不差的原句。",
+  "confidence": "中",
+  "loadBearing": true,
+  "note": "洞察0的权威背书支点。substance(藻油更适合敏感人群)有主流共识支撑,但'百度健康官方建议'的权威定性不成立、且确切原文措辞查无实据,建议改口径为'多来源营养科普(含百度健康AI科普)普遍认为…',勿称官方建议。",
+  "sources": [
+   "https://health.baidu.com/m/detail/ar_6101607293337506215",
+   "https://health.baidu.com/m/detail/ar_6408152994873060371"
+  ],
+  "adversarial": {
+   "id": "F1",
+   "holds": true,
+   "reason": "对抗式复核未能推翻矫正结论,反而多点强化。(1)独立抓取两条被引URL确认:正文含\"藻类在封闭环境中培养,重金属(如汞)和海洋污染物风险极低\"\"适合素食者、过敏体质人群,以及孕妇、婴幼儿等特殊群体补充\"等表述,页首均逐字标注\"百度健康基于AI生成经专家审阅\",署名\"百度健康·医学科普\"——AI科普定性坐实。(2)独立核实百度健康平台性质:系百度旗下商业平台的\"AIGC权威科普\",采用AI生成+三级审核机制,并非卫健委/官方指南,\"官方建议\"的权威定性不成立。(3)对报告原句关键片段(\"对风险敏感的人群\"\"非鱼类提取\"\"无海洋污染风险\"\"或其他补充剂\")做精确检索,均无一字不差的原文,系转述/重构成立。(4)substance(藻油封闭培养、不经食物链、汞/海洋污染富集低、更适合孕妇婴幼儿及气味敏感人群)在人民网科普中国、澎湃、宁波妇儿医院健康处方、多篇行业评测中高度一致,主流共识确实存在。唯一瑕疵:evidence把被引页ar_6101607293337506215称为\"引导购买的软文\",但我独立抓取该页及第二条页面均无品牌名/购买引导,读为相对中性AI科普;\"品牌排行榜\"类商业榜单是另一条搜索结果,非这两条被引页。该瑕疵指向\"这两页更中性\",不支撑报告\"官方建议\"框定,对核心矫正(非官方、无原句、substance有共识)无削弱。故反驳不成立,矫正结论成立。因平台性质与AI免责声明经一手源逐字证实,置信度由\"中\"上调至\"高\"。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://health.baidu.com/m/detail/ar_6101607293337506215",
+    "https://health.baidu.com/m/detail/ar_6408152994873060371",
+    "https://finance.sina.com.cn/wm/2025-07-31/doc-infiiyit2863680.shtml",
+    "https://www.stdaily.com/web/gdxw/2025-12/19/content_450122.html",
+    "http://www.nbfeyy.com/art/2024/1/1/art_15110_637683.html",
+    "http://health.people.com.cn/n1/2016/1205/c404177-28925560.html"
+   ]
+  }
+ },
+ {
+  "id": "F2",
+  "claim": "藻油DHA(裂殖壶菌Schizochytrium)与小球藻(Chlorella,淡水微藻)为封闭发酵罐/光生物反应器培养、非海洋捕捞来源;鱼油原料确为海洋鱼类(沙丁鱼/鲭鱼/凤尾鱼)。",
+  "original": "报告以此作为'藻油天然规避海洋污染、鱼油被海洋来源锁死'的技术事实基础。",
+  "verdict": "确认",
+  "corrected": "技术事实成立:藻油DHA主流工艺为裂殖壶菌(Schizochytrium)在密闭发酵罐内异养发酵(加葡萄糖等碳源,黑暗培养10-15天,DHA可占藻油30%-50%),不受海洋重金属污染影响,非海洋打捞;小球藻Chlorella为淡水微藻,多用光生物反应器/开放池培养;鱼油原料确来自沙丁鱼/鲭鱼/凤尾鱼等海洋鱼类。两处需注意的措辞nuance见note。",
+  "evidence": "cabio.cn、foodmate食品研发中心、tiaozhanbei高密度培养裂殖壶菌等多源一致描述密闭发酵工艺与非海洋打捞属性;润科/CABIO等产业资料印证。鱼油海洋来源为行业常识,cls.cn亦载全球DHA市场90%+为鱼油DHA、原料多为秘鲁凤尾鱼。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "两点纠偏:(1)裂殖壶菌本身是'海洋来源微生物'(原分离自海洋/红树林环境),严格说是'海洋来源微生物经封闭发酵',称其'非海洋来源'不精确,准确表述应为'非海洋捕捞、封闭发酵、无海洋污染富集';(2)小球藻Chlorella主打叶绿素/蛋白,并非主流DHA原料,若报告暗示Chlorella供DHA则不准确。核心结论(藻油规避海洋污染路径)成立。",
+  "sources": [
+   "https://www.cabio.cn/news/detail218.html",
+   "https://yanfa.foodmate.net/news/show-1888.html",
+   "https://old.tiaozhanbei.net/project/17616/"
+  ],
+  "adversarial": {
+   "id": "F2",
+   "holds": true,
+   "reason": "对抗式复核未能推翻该结论，反而多源交叉印证，故 holds=true。\n\n逐项反驳尝试与结果：\n(1) 藻油DHA工艺与数字——试图证伪\"密闭发酵罐/异养/加葡萄糖/黑暗/10-15天/DHA占30%-50%\"这组参数。foodmate食品研发中心原文几乎逐字命中：\"在密闭发酵罐中加入葡萄糖等碳源，让微藻在黑暗环境中快速生长\"、培养周期\"10-15天\"、DHA\"可达藻油总量的30%-50%\"。裂殖壶菌高密度发酵文献亦载总脂肪酸>50%、DHA占30%-50%（个别诱变株可达约56%，个别未优化约25%），故\"30%-50%\"为主流区间，数字站得住。反驳失败。\n\n(2) 非海洋打捞属性——CABIO(嘉必优)原文：\"利用微生物发酵技术，在密闭的系统中进行规模化培养，不受海洋铅、汞、砷、有机物(DDT、六氯苯等)重金属和外界有害物质污染的影响\"，并明确\"菌种是企业自行保存扩容而非海洋打捞的藻类植物\"。直接坐实\"非海洋捕捞、封闭发酵、无海洋污染富集\"。反驳失败。\n\n(3) note 纠偏一(裂殖壶菌本身系海洋来源微生物)——不但未被推翻，反被独立证据加强：学界普遍将其描述为\"海洋真菌/heterotrophic marine microorganism\"，多株分离自红树林(越南PQ6、温州LU310)及近海(华北沿海HBW10)。故报告若写\"非海洋来源\"确不精确，note 的\"海洋来源微生物经封闭发酵\"更准确。纠偏成立。\n\n(4) note 纠偏二(小球藻非主流DHA原料)——foodmate 列举的高产DHA藻种为\"裂壶藻、寇氏隐甲藻、三角褐指藻\"，未含小球藻；小球藻资料一致指向高蛋白(50%-70%)/高叶绿素(2%-4%)，个别株产EPA而非DHA。故 note 的条件式警示准确。\n\n(5) 鱼油海洋来源——澎湃/知乎/中国渔业协会等一致：鱼油DHA原料为沙丁鱼、鳀鱼(凤尾鱼)、鲭鱼等深海小型鱼，秘鲁凤尾鱼为主力(年捕捞>400万吨)；全球DHA市场鱼油占比>90%(gelonghui/cls.cn口径)。反驳失败。\n\n唯一可挑的口径瑕疵：小球藻除光自养(光生物反应器/开放池)外亦存在异养(发酵罐)高密度培养路线，corrected 用\"多用光生物反应器/开放池\"以\"多用\"作了对冲，属可接受的概括，不足以动摇核心。综上，核心技术事实(藻油经封闭发酵规避海洋污染富集、鱼油被海洋来源锁死)与两处 nuance 均成立，维持\"确认\"，置信度维持\"高\"。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.cabio.cn/news/detail218.html",
+    "https://yanfa.foodmate.net/news/show-1888.html",
+    "https://link.springer.com/article/10.1007/s10811-018-1627-7",
+    "https://www.cls.cn/detail/1444386",
+    "https://www.thepaper.cn/newsDetail_forward_16564113"
+   ]
+  }
+ },
+ {
+  "id": "F3",
+  "claim": "消费者对'海洋来源/日本核废水'的焦虑真实且'不可逆',构成鱼油的结构性需求软肋。",
+  "original": "报告将'核废水焦虑不可逆'作为洞察0的需求端前提,论证鱼油被结构性削弱。",
+  "verdict": "修正",
+  "corrected": "焦虑'真实存在且曾显著搅动市场'——有充分可引用证据;但'不可逆'系前瞻性主观判断,缺乏实据。2023-08 日本启动福岛核污水排海后:DHA保健品出现抢购潮与涨价;藻油DHA替代概念股上涨(嘉必优+6.95%、金达威+3.5%);汤臣倍健、诚意药业等多家上市公司公开澄清'原料与核污水无关';海关总署全面暂停进口日本水产品。这些印证短期焦虑真实。但无证据支持焦虑'不可逆';至2026年急性舆情大概率已回落常态,建议将'不可逆'弱化为'被核污水事件长期触发并强化的结构性顾虑'。",
+  "evidence": "cls.cn 2023-08-25《藻油DHA替代概念火爆 多上市公司澄清'原料生产与核污水无关'》载抢购潮、概念股涨幅与公司澄清;stcn.com载海关总署全面暂停日本水产品进口;知乎/澎湃/虎嗅多篇讨论'核污水后鱼油DHA还能吃吗'。'不可逆'无任何数据或趋势佐证。",
+  "confidence": "高",
+  "loadBearing": true,
+  "note": "焦虑存在=确认(高置信);'不可逆'=证据不足(低置信),属主观外推,不宜作为硬前提。搜索趋势/舆情的持续强度需实时舆情数据复核。",
+  "sources": [
+   "https://www.cls.cn/detail/1444386",
+   "https://www.stcn.com/article/detail/957387.html"
+  ],
+  "adversarial": {
+   "id": "F3",
+   "holds": true,
+   "reason": "对抗式复核结论：矫正后结论成立(holds=true),反驳未能推翻,且我新找到的证据反而进一步加固该矫正。\n\n一、对\"焦虑真实且曾显著搅动市场\"(确认部分)的反驳失败——每个具体数字都溯源到一手源:\n- 财联社原文(cls.cn/detail/1444386)完整证实:DHA抢购潮与涨价(纽曼思90粒装单瓶+15元,一般产品每瓶+10~30元);嘉必优(688089)最高涨6.95%、金达威(002626)最高涨3.5%;嘉必优、汤臣倍健、诚意药业、金达威四家公开澄清,其中诚意药业明确\"原料皆从秘鲁进口,主要是深海鱼油\"。\n- 海关总署2023年第103号公告(自2023-08-24全面暂停进口日本水产品)经新华网、证券时报独立证实。\n未发现任何相反证据。此半句为高置信\"确认\"。\n\n二、对\"不可逆=证据不足/属主观外推\"(矫正核心)的反驳同样失败——我试图找\"焦虑确实不可逆\"的证据,结果全部指向相反,即矫正正确:\n1) 制度反证:海关总署2025年第140号公告(2025-06-29)在禁令约22个月后\"有条件恢复日本部分地区水产品进口\",急性危机已进入常态化处置,直接与\"不可逆\"矛盾。\n2) 舆情反证:公开讨论显示含\"核污水\"内容互动率由2023排放初期约6.7%降至2025-05约0.3%、主流媒体报道由每日约62篇降至每月不足10篇(163自媒体口径,权威度一般,但衰减方向与'为什么没人提了'的公共讨论及禁令松动相互印证)。\n3) 需求端反证(最关键):鱼油市场在事件当年及之后逆势高增——2023中国鱼油市场规模62.31亿元(同比+25.78%)、销量13.9万吨(同比+30.9%),2025预计92.4亿元,高端鱼油份额由2020年18%升至2025年30%。这直接反驳\"鱼油被结构性削弱/不可逆\"的前提:鱼油需求非但未被摧毁,反而扩张。\n\n三、口径与源integrity提示:\n- 原报告把\"不可逆\"当作洞察0的硬前提(loadBearing),而需求数据显示鱼油demand增长,说明原始表述明显外推过度;矫正将其降级为主观判断、并改写为\"被核污水事件长期触发并强化的结构性顾虑\"是恰当的,甚至可再软化(因鱼油需求实际增长,\"结构性软肋\"在销量口径上并不成立;残余顾虑虽仍存在——'信任重建是漫长过程'——但不构成硬性需求削弱)。\n- 原结论sources中的 stcn URL(957387)疑为错号:海关暂停公告实际位于 stcn 957299,事实无误、仅链接需更正。\n\n结论:矫正判定\"焦虑存在=确认(高);'不可逆'=证据不足、属主观外推、不宜作硬前提\"经独立对抗复核依然成立,且被2025年禁令松动、舆情消退与鱼油市场增长三组新证据进一步支持。holds=true。",
+   "adjustedConfidence": "高",
+   "sources": [
+    "https://www.cls.cn/detail/1444386",
+    "http://www.news.cn/2023-08/24/c_1129820689.htm",
+    "https://www.stcn.com/article/detail/957299.html",
+    "https://www.gov.cn/zhengce/zhengceku/202507/content_7031581.htm",
+    "https://m.chinabgao.com/freereport/94813.html",
+    "https://c.m.163.com/news/a/KBRIS7KH05239VSD.html"
+   ]
+  }
+ },
+ {
+  "id": "F4",
+  "claim": "汤臣倍健在鱼油/DHA的份额为28.5%。",
+  "original": "报告用'28.5%'撑'鱼油龙头集中度'场面。",
+  "verdict": "修正",
+  "corrected": "查无'28.5%'出处。可溯源的权威数字为:汤臣倍健2023年报(引中康CMH数据)称'汤臣倍健'品牌鱼油品类在线下药店渠道市占率36.4%、位列品类第一;更早(2023-02每日经济新闻)口径为'重点城市药店渠道鱼油零售规模行业首位'。建议改用36.4%(线下药店,2023),并注明口径为药店渠道而非全渠道。",
+  "evidence": "汤臣倍健2023年财报报道(stcn、北京商报、新华网等)一致载鱼油品类线下药店市占率36.4%、品类第一;每经2023-02-17载重点城市药店鱼油零售规模首位。多次针对性搜索均无28.5%对应来源。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "属撑场数字,非策略核心。28.5% vs 36.4% 也可能是不同年份/不同口径(药店渠道 vs 全渠道 vs 品牌 vs 集团)差异;当前可信口径为线下药店36.4%。",
+  "sources": [
+   "https://www.stcn.com/article/detail/1149823.html",
+   "https://m.nbd.com.cn/articles/2023-02-17/2673296.html"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "F5",
+  "claim": "汤臣倍健药店渠道覆盖率98%。",
+  "original": "报告以'98%药店覆盖'佐证鱼油龙头渠道壁垒。",
+  "verdict": "存疑",
+  "corrected": "查无'98%'确切出处。可溯源的是:巅峰期汤臣倍健药店覆盖率'超过90%'、经销商一度达1125家;2020年医保新规禁止保健品刷医保卡后经销商锐减至597家,近年线下药店渠道收入持续下滑(2025年线下-17.39%)。故'98%'既无出处、又与'近年渠道收缩'现状相悖,不宜作现时事实使用。",
+  "evidence": "知乎/澎湃《线下称王的汤臣倍健…》载'药店覆盖率超90%''经销商1125→597家';同花顺F10、证券之星等载渠道含药店/商超/母婴店及近年下滑。未见任何'98%'来源。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "'超90%'为可溯源上限口径;'98%'疑为夸大或旧数据,且当前覆盖在收缩。",
+  "sources": [
+   "https://zhuanlan.zhihu.com/p/518101125"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "F6",
+  "claim": "特元素为高纯EPA鱼油TOP1、获IFOS五星认证、吸收率为普通鱼油8倍。",
+  "original": "报告以特元素为标杆,论证'高纯EPA鱼油'赛道的强对手/高势能。",
+  "verdict": "存疑",
+  "corrected": "'TOP1'与'8倍吸收率'基本只见于付费SEO软文/榜单(搜狐、网易、新浪roll、中华网等),非独立评测,属营销自述:'TOP1'为软文自封;'8倍吸收率'缺可信临床出处(rTG型相对EE型吸收优势业内一般引为约50%-70%更高,'8倍'明显夸张)。IFOS(International Fish Oil Standards)本身是Nutrasource旗下真实且知名的鱼油认证体系(2004年设,五星制真实存在);但软文所给证书号(IFOS-2026-OM-8841)未能在Nutrasource官方数据库独立检索确认,'特元素'具体产品的五星认证无法独立核实。",
+  "evidence": "IFOS体系经 certifications.nutrasource.ca 确认为真实五星认证;'TOP1/8倍/五星'诸表述来自 sohu/163/sina roll/中华网 等商业软文,措辞高度雷同、含证书号但无第三方背书;Nutrasource认证库页面未能返回'特元素'匹配结果。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "IFOS五星=体系真实但具体产品认证无法独立验证;TOP1/8倍吸收率=软文营销话术,存疑。若要引用需以IFOS官方数据库核对证书号,并对'8倍'去营销化。",
+  "sources": [
+   "https://certifications.nutrasource.ca/about/how-certifications-work/ifos",
+   "https://www.sohu.com/a/968149250_122508332"
+  ],
+  "adversarial": null
+ },
+ {
+  "id": "F7",
+  "claim": "高纯EPA全球CAGR为14.7%。",
+  "original": "报告用'高纯EPA全球CAGR 14.7%'论证赛道高增长。",
+  "verdict": "修正",
+  "corrected": "口径错配。14.7%实为'中国心脑健康营养品'整体市场CAGR(该市场2026年破890亿元)的数字,并非'高纯EPA全球CAGR'。全球高EPA鱼油CAGR据第三方市场报告约为4.8%-5.0%(2023-2029/2024-2030);中国高活性EPA鱼油品类增速另有'约22.3%'的说法。报告把'中国心脑营养品14.7%'张冠李戴为'高纯EPA全球14.7%'。",
+  "evidence": "环洋市场咨询(GlobalInfoResearch)载全球高EPA鱼油2023-2029 CAGR约4.8%、另一口径2024-2030约5.0%;14.7%与22.3%均出自新浪财经roll等促销软文,对应中国心脑营养品市场与中国高活性EPA品类,而非全球高纯EPA。",
+  "confidence": "中",
+  "loadBearing": false,
+  "note": "两重问题:(1)地域/品类张冠李戴(中国心脑营养品≠全球高纯EPA);(2)14.7%/22.3%源头为软文,数字本身可信度亦有限。全球高EPA权威CAGR约5%量级。",
+  "sources": [
+   "https://www.globalinforesearch.com.cn/reports/878408/high-epa-fish-oil",
+   "https://finance.sina.com.cn/roll/2026-03-28/doc-inhspwhs1096290.shtml"
+  ],
+  "adversarial": null
+ }
+]
