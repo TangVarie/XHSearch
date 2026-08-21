@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""按当前配置算月度积分成本。
+"""按当前配置算月度成本，两家供应商分开报。
 
     python3 tools/estimate_cost.py [每天新发条数] [小红书占比]
 
-计价（已从官网核实）：列表/搜索/评论 10 积分/页，1 积分 = 0.01 元 → 一次调用 ¥0.10。
-调用次数（已从接口 schema 核实）：
+计价（都已实地核实）：
+    SocialDataX  全平台 10 积分/页，1 积分 = ¥0.01 → 一次调用 ¥0.10
+    TikHub       小红书 $0.010/次（不参与走量折扣），抖音 $0.001/次
+                 数字来自它自己公开免鉴权的计价接口 get_all_endpoints_info
+
+调用次数（已从接口实测核实）：
     小红书 = 1 次评论调用（评论数 + 置顶 + 前 N 条一次拿全）
              + 新笔记额外 1 次 detail（点赞/收藏）
     抖音   = 1 次评论调用 + 恒定 1 次 detail
-             （评论接口的 comment_count 类型是 integer|null，必须兜底）
+             （SocialDataX 的 comment_count 是 integer|null，必须兜底；
+               TikHub 的 total 实测是实数，但 detail 还要拿点赞收藏，照调）
 """
 
 from __future__ import annotations
@@ -18,9 +23,10 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
+from xhsearch import providers  # noqa: E402
 from xhsearch.config import Settings  # noqa: E402
 
-YUAN_PER_CALL = 0.10
+YUAN_PER_CALL = 0.10  # SocialDataX 单价，用作对照基准
 
 
 def tier_population(settings: Settings, per_day: float) -> list[tuple[str, float, int, float]]:
@@ -80,6 +86,23 @@ def estimate(per_day: float, xhs_share: float, settings: Settings) -> dict:
     }
 
 
+def _split_by_platform(per_day: float, xhs_share: float, settings: Settings):
+    """把每天的调用次数按平台拆开。双通道之后两家单价差 10 倍，不拆就算不出钱。"""
+    xhs_calls = dy_calls = 0.0
+    previous_max = 0
+    for max_age_days, interval_hours in settings.refresh.tiers:
+        population = per_day * (max_age_days - previous_max)
+        refreshes = 24 / interval_hours
+        xhs_posts = population * xhs_share
+        dy_posts = population * (1 - xhs_share)
+        xhs_calls += xhs_posts * refreshes
+        if max_age_days <= settings.detail_within_days:
+            xhs_calls += xhs_posts * refreshes         # detail
+        dy_calls += dy_posts * refreshes * 2           # 评论 + 恒定 detail
+        previous_max = max_age_days
+    return xhs_calls, dy_calls
+
+
 def flat_daily(total_posts: float, xhs_share: float, with_detail: bool) -> dict:
     """对照组：不分层，每天全表刷一遍。"""
     xhs = total_posts * xhs_share
@@ -106,8 +129,24 @@ def main() -> int:
     print("-" * 44)
     print(f"{'合计':<14}{result['posts']:>8.0f}{'':>10}{result['calls_per_day']:>10.0f}")
     print(f"\n  其中评论调用 {result['comment_calls']:.0f}／detail 调用 {result['detail_calls']:.0f}")
-    print(f"\n【分层刷新】 {result['calls_per_day']:.0f} 次/天 "
-          f"= ¥{result['yuan_per_day']:.0f}/天 = ¥{result['yuan_per_month']:,.0f}/月")
+    xhs_calls, dy_calls = _split_by_platform(per_day, xhs_share, settings)
+    sdx = providers.get_provider("socialdatax")
+    tik = providers.get_provider("tikhub")
+    sdx_month = (xhs_calls * sdx.yuan_per_call("xhs", "comments")
+                 + dy_calls * sdx.yuan_per_call("douyin", "comments")) * 30
+    tik_month = (xhs_calls * tik.yuan_per_call("xhs", "comments")
+                 + dy_calls * tik.yuan_per_call("douyin", "comments")) * 30
+
+    print(f"\n  按平台拆：小红书 {xhs_calls:.0f} 次/天，抖音 {dy_calls:.0f} 次/天")
+    print(f"\n【分层刷新 · 全走 SocialDataX】 {result['calls_per_day']:.0f} 次/天 "
+          f"= ¥{sdx_month:,.0f}/月")
+    print(f"【分层刷新 · 全走 TikHub】     同样次数 = ¥{tik_month:,.0f}/月"
+          f"（省 {100 * (1 - tik_month / sdx_month):.0f}%）")
+    print(f"  其中抖音那段：¥{dy_calls * 0.10 * 30:,.0f} → "
+          f"¥{dy_calls * tik.yuan_per_call('douyin', 'comments') * 30:,.0f}/月"
+          f"（这是省得最狠的一块）")
+    print(f"\n  当前配置：小红书主通道 {settings.channels.primary('xhs')}，"
+          f"抖音主通道 {settings.channels.primary('douyin')}")
 
     flat_full = flat_daily(result["posts"], xhs_share, with_detail=True)
     flat_lean = flat_daily(result["posts"], xhs_share, with_detail=False)

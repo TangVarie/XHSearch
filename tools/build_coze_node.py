@@ -21,7 +21,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PKG = ROOT / "xhsearch"
 
 # 依赖顺序。纯逻辑模块，全部不碰网络。
-MODULES = ["config.py", "links.py", "protocol.py", "tags.py", "analyze.py", "rows.py"]
+MODULES = ["config.py", "links.py", "protocol.py", "providers.py",
+           "tags.py", "analyze.py", "rows.py"]
 
 HEADER = '''"""
 =============================================================================
@@ -35,7 +36,8 @@ HEADER = '''"""
 入参（开始节点配置）：
     mode        String   "sweep"（分层巡检）或 "row"（刷指定行）
     record_ids  String   逗号分隔的 record_id；mode=row 时必填
-    api_key     String   SocialDataX API Key
+    tikhub_key  String   TikHub API Key（主通道；留空则只走 SocialDataX）
+    api_key     String   SocialDataX API Key（备胎；留空则只走 TikHub）
     app_id      String   飞书自建应用 app_id
     app_secret  String   飞书自建应用 app_secret
     app_token   String   多维表格 app_token（URL 里 /base/ 后面那段）
@@ -45,9 +47,12 @@ HEADER = '''"""
 无法引用数组里的单个元素，返回数组等于在飞书侧不可用。
     ok          Boolean
     processed   Number
-    credits     Number
-    balance     Number
+    credits     Number    本轮花费的「分」（¥0.01），跨供应商唯一能相加的单位
+    balance     Number    SocialDataX 的积分余额；只走 TikHub 时是 0
     message     String
+
+⚠️ tikhub_key 和 api_key 至少要填一个。两个都填就自动降级：
+主通道网络故障 / Key 失效 / 余额耗尽时换另一家继续，而不是整轮停摆。
 
 ⚠️ 代码节点硬上限 60 秒。SOFT_DEADLINE 设成 45 秒，到点就停止派发新行，
 未处理的行不写回「最后更新时间」，下一轮触发自然会重新捞起来——这就是断点续跑
@@ -123,33 +128,76 @@ async def feishu_batch_update(token, app_token, table_id, updates):
     return len(updates)
 
 
-async def sdx_call(api_key: str, call: ToolCall, semaphore, deadline: float):
-    """打一次 SocialDataX REST 接口。
+async def _one_shot(name: str, api_key: str, call: ToolCall, deadline: float):
+    """打一次某一家的接口。
 
-    ⚠️ 业务错误也返回 HTTP 200，靠 body 里的 `code` 字段区分。
-    只看 status_code 的写法会把每一个「笔记已删除」当成成功。
+    ⚠️ 两家的业务错误都可能走 HTTP 200：SocialDataX 靠 body 里的 `code`，
+    TikHub 靠 data 的形状。只看 status_code 的写法会把每一个「笔记已删除」
+    当成成功。归一化和分类全在 providers 层，这里只负责发包。
+    """
+    provider = get_provider(name)
+    request = provider.build(api_key, call.platform, call.purpose, call.arguments)
+    try:
+        if request.method == "GET":
+            response = await requests.get(request.url, headers=request.headers, timeout=25.0)
+        else:
+            response = await requests.post(
+                request.url, headers=request.headers,
+                data=request.body.encode("utf-8"), timeout=25.0)
+    except Exception as exc:                           # noqa: BLE001
+        return Err(Failure.TRANSPORT, "network", f"{type(exc).__name__}: {exc}")
+
+    content_type, request_id = "", ""
+    try:
+        content_type = response.headers.get("content-type", "") or ""
+        request_id = response.headers.get("x-request-id", "") or ""
+    except Exception:                                  # noqa: BLE001
+        pass
+    return provider.parse(call.platform, call.purpose,
+                          getattr(response, "status_code", 0), content_type,
+                          response.text, request_id, api_key)
+
+
+async def channel_call(keys: dict, settings, call: ToolCall, semaphore, deadline: float,
+                       disabled: set):
+    """双通道：主通道倒下就换备胎，而不是让整轮停摆。
+
+    返回 (结果, 计费明细 {供应商: 次数})。GONE 不触发降级——那是行级结论不是
+    通道故障，换一家只会再花一次钱得到同一个答案。
+
+    ⚠️ 计费明细里包含**失败但照样扣了钱**的调用：TikHub 对不存在的笔记
+    「正常响应、正常计费」，只是 data 里是空壳。只记成功的话账面会比账单少。
+    判据是「HTTP 成功、业务失败」+ 这家确实收这种钱（bills_failed_lookups）——
+    401/400 那种没进业务层的对方明说不计费，SocialDataX 那边则是还没验过。
     """
     async with semaphore:
         if time.monotonic() >= deadline:
-            return Err(Failure.TRANSPORT, "deadline", "已到软截止，留给下一轮")
-        try:
-            response = await requests.post(
-                endpoint(call.platform, call.purpose),
-                headers=headers(api_key),
-                data=build_body(call.arguments).encode("utf-8"),
-                timeout=25.0,
-            )
-        except Exception as exc:                       # noqa: BLE001
-            return Err(Failure.TRANSPORT, "network", f"{type(exc).__name__}: {exc}")
+            return Err(Failure.TRANSPORT, "deadline", "已到软截止，留给下一轮"), {}
 
-        content_type, request_id = "", ""
-        try:
-            content_type = response.headers.get("content-type", "") or ""
-            request_id = response.headers.get("x-request-id", "") or ""
-        except Exception:                              # noqa: BLE001
-            pass
-        return parse_response(getattr(response, "status_code", 0), content_type,
-                              response.text, request_id)
+        order = usable_order(settings.channels, call.platform, keys, disabled)
+        if not order:
+            return Err(Failure.AUTH, "no_channel",
+                       f"{call.platform} 没有可用的数据通道了", definitive=True), {}
+
+        billed = {}
+        last = Err(Failure.UNKNOWN, "no_attempt", "没有发起任何请求")
+        for index, name in enumerate(order):
+            result = await _one_shot(name, keys[name], call, deadline)
+            charged = not isinstance(result, Err) or (
+                get_provider(name).bills_failed_lookups
+                and result.http_status is not None
+                and 200 <= result.http_status < 300)
+            if charged:
+                billed[name] = billed.get(name, 0) + 1
+            if not isinstance(result, Err):
+                return result, billed
+            last = result
+            if result.kind in (Failure.AUTH, Failure.QUOTA):
+                # 整轮拉黑：40 行各撞一次同样的 401 既慢又会把限流打出来。
+                disabled.add(name)
+            if result.kind not in FAILOVER_KINDS or index == len(order) - 1:
+                return result, billed
+        return last, billed
 
 
 # =============================================================================
@@ -209,21 +257,34 @@ async def main(args: Any) -> dict:
     if not rows:
         return {"ok": True, "processed": 0, "credits": 0, "balance": 0, "message": "没有到期的行"}
 
+    keys = {k: v for k, v in {
+        "tikhub": (p.get("tikhub_key") or "").strip(),
+        "socialdatax": (p.get("api_key") or "").strip(),
+    }.items() if v}
+    if not keys:
+        return {"ok": False, "processed": 0, "credits": 0, "balance": 0,
+                "message": "tikhub_key 和 api_key 至少要填一个"}
+
     semaphore = asyncio.Semaphore(settings.max_concurrency)
+    # 本轮已确认不可用的通道。协程之间共享，只做「加一个字符串」这一种写入。
+    disabled = set()
     results = await asyncio.gather(
-        *[_process(row, p["api_key"], settings, now, semaphore, deadline, wanted=bool(wanted))
+        *[_process(row, keys, settings, now, semaphore, deadline, disabled,
+                   wanted=bool(wanted))
           for row in rows],
         return_exceptions=True,
     )
 
-    updates, credits, balance, gone = [], 0, 0, 0
+    updates, cents, balance, gone, used = [], 0, 0, 0, {}
     for row, result in zip(rows, results):
         if isinstance(result, Exception):
             continue
-        fields, spent, bal, is_gone = result
-        credits += spent
+        fields, spent, bal, is_gone, tally = result
+        cents += spent
         balance = bal or balance
         gone += 1 if is_gone else 0
+        for name, count in tally.items():
+            used[name] = used.get(name, 0) + count
         if fields:
             updates.append({"record_id": row.record_id, "fields": fields})
 
@@ -237,35 +298,52 @@ async def main(args: Any) -> dict:
     try:
         written = await feishu_batch_update(token, p["app_token"], p["table_id"], updates)
     except Exception as exc:                           # noqa: BLE001
-        return {"ok": False, "processed": 0, "credits": credits, "balance": balance,
+        return {"ok": False, "processed": 0, "credits": cents, "balance": balance,
                 "message": f"算完了但写回失败：{exc}"}
 
-    message = f"刷新 {written} 行，消耗 {credits} 积分 ≈ ¥{credits / 100:.2f}"
+    via = "、".join(f"{k} {v} 次" for k, v in sorted(used.items())) or "无调用"
+    message = f"刷新 {written} 行，花费 ≈ ¥{cents / 100:.2f}（{via}）"
+    if disabled:
+        message += f"；⚠ 本轮 {'、'.join(sorted(disabled))} 通道不可用，已降级"
     if tripped:
         message += "；⚠ 本批失效比例异常，已熔断，未改流量状态"
-    return {"ok": True, "processed": written, "credits": credits,
+    return {"ok": True, "processed": written, "credits": cents,
             "balance": balance, "message": message}
 
 
-async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
-    """单行处理。返回（待写字段, 消耗积分, 余额, 是否判定失效）。"""
+async def _process(row, keys, settings, now, semaphore, deadline, disabled, *, wanted):
+    """单行处理。返回（待写字段, 花费的分, 余额, 是否判定失效, 各通道调用次数）。"""
     f = settings.fields
     if not row.parsed.usable:
-        return (_base_fields(settings, "跳过", [row.parsed.describe_failure()], now), 0, 0, False)
+        return (_base_fields(settings, "跳过", [row.parsed.describe_failure()], now),
+                0, 0, False, {})
     if not wanted and row.in_cooldown(settings, now):
-        return (None, 0, 0, False)
+        return (None, 0, 0, False, {})
 
-    snapshot, error, credits, balance = None, None, 0, 0
+    snapshot, error, cents, balance, tally = None, None, 0, 0, {}
     for call in plan_calls(row, settings, now):
-        result = await sdx_call(api_key, call, semaphore, deadline)
+        result, billed = await channel_call(keys, settings, call, semaphore,
+                                            deadline, disabled)
+        for name, count in billed.items():
+            tally[name] = tally.get(name, 0) + count
+            cents += count * round(get_provider(name).yuan_per_call(
+                call.platform, call.purpose) * 100)
         if isinstance(result, Err):
             if result.kind in FATAL:
-                return (_base_fields(settings, "刷新失败", [str(result)], now), credits, balance, False)
+                # 走到这里说明所有通道都是 AUTH/QUOTA，备胎也没了。
+                return (_base_fields(settings, "刷新失败", [str(result)], now),
+                        cents, balance, False, tally)
+            if result.kind is Failure.GONE and not (
+                    snapshot and (snapshot.comments or snapshot.comment_count)):
+                # 死亡信号可能来自 detail（小红书 data 为 []、抖音 filter_list 命中）。
+                # 但评论刚拿回一堆、detail 却说没了，那是上游自相矛盾，不能认。
+                error = result
+                snapshot = None
+                break
             if call.purpose == "comments":
                 error = result
                 break
             continue
-        credits += result.points_cost or 10
         balance = result.points_balance or balance
         if call.purpose == "comments":
             snapshot = read_comment_page(call.platform, result.data)
@@ -283,13 +361,13 @@ async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
         fields = _render(row, verdict, None, settings, now,
                          "已失效" if convicted else "疑似受限", touch_tags=convicted)
         fields[f.consecutive_failures] = strikes
-        return (fields, credits, balance, convicted)
+        return (fields, cents, balance, convicted, tally)
 
     if snapshot is None:
         reason = error.operator_text() if error else "没有拿到任何数据"
         fields = _base_fields(settings, "刷新失败", [reason], now)
         fields[f.consecutive_failures] = (row.consecutive_failures or 0) + 1
-        return (fields, credits, balance, False)
+        return (fields, cents, balance, False, tally)
 
     verdict = decide(snapshot, settings,
                      previous_comment_count=row.previous_comment_count,
@@ -297,9 +375,11 @@ async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
                      expected_pinned=row.expected_pinned,
                      current_tags=row.current_tags,
                      current_comment_status=row.comment_status)
+    if snapshot.censored:
+        verdict.notes.append("⚠ 上游把这条标成了审核中/受限，请人工确认")
     fields = _render(row, verdict, snapshot, settings, now, "正常")
     fields[f.consecutive_failures] = 0
-    return (fields, credits, balance, False)
+    return (fields, cents, balance, False, tally)
 
 
 def _base_fields(settings, status, notes, now):

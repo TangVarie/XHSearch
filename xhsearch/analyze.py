@@ -65,6 +65,14 @@ class Snapshot:
     share_count: Optional[int] = None
     points_balance: Optional[int] = None
 
+    # 上游自己给的审核/封禁标记（小红书 in_censor、抖音 is_prohibited/in_reviewing）。
+    # 只有 TikHub 通道拿得到，SocialDataX 那边没有这个字段，所以永远可能是 None。
+    # ⚠️ 刻意**不参与打标签**：这两个字段的语义还没在真实被封的帖子上验过，
+    # 只见过 false。凭没验过的字段打「风控中」，一旦误报就是运营全线停投——
+    # 那正是这个项目最不能犯的错。现在只写进诊断信息给人看。
+    # 验过之后再决定要不要提升成判定依据，见 docs/待验证清单.md。
+    censored: Optional[bool] = None
+
     @property
     def pinned(self) -> Optional[CommentView]:
         return next((c for c in self.comments if c.is_pinned), None)
@@ -136,6 +144,8 @@ def merge_detail(snapshot: Snapshot, data: dict[str, Any]) -> Snapshot:
     snapshot.share_count = _int_or_none(data.get("share_count"))
     if snapshot.comment_count is None:
         snapshot.comment_count = _int_or_none(data.get("comment_count"))
+    if isinstance(data.get("_censored"), bool):
+        snapshot.censored = data["_censored"]
     points = data.get("points") if isinstance(data.get("points"), dict) else {}
     if points.get("balance") is not None:
         snapshot.points_balance = points["balance"]

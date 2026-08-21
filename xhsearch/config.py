@@ -209,6 +209,48 @@ class Safety:
 
 
 @dataclass
+class Channels:
+    """双通道：每个平台走哪几家数据供应商，按顺序降级。
+
+    默认两个平台都优先 TikHub，SocialDataX 作备胎。理由（都是实测的，
+    完整对比见 docs/供应商对比.md）：
+
+    * 抖音便宜 93%（¥0.10 → ¥0.0072 一次），小红书便宜 28%
+    * 两家需要的字段都拿得到——TikHub 的置顶标记藏在 `show_tags_v2` 里，
+      名字不叫 is_pinned，但确实有
+    * SocialDataX 的错误码是有契约的（1006 封控 / 1008 已删除，
+      厂商自己标了「不要重试」），TikHub 没有这张表。所以它更适合当备胎：
+      平时不花钱，主通道挂了或余额空了立刻顶上
+
+    降级只在**主通道自己有问题**时发生（网络故障、Key 失效、余额耗尽），
+    不会因为「这条笔记没了」而去第二家再花一次钱——那是行级结论，不是故障。
+
+    只想用一家：把列表写成单元素即可，行为和改造前完全一致。
+        settings.channels.order = {"xhs": ["socialdatax"], "douyin": ["socialdatax"]}
+    """
+
+    order: dict[str, list[str]] = field(default_factory=lambda: {
+        "xhs": ["tikhub", "socialdatax"],
+        "douyin": ["tikhub", "socialdatax"],
+    })
+
+    def for_platform(self, platform: str) -> list[str]:
+        return list(self.order.get(platform) or ["socialdatax"])
+
+    def all_names(self) -> list[str]:
+        seen: list[str] = []
+        for names in self.order.values():
+            for name in names:
+                if name not in seen:
+                    seen.append(name)
+        return seen
+
+    def primary(self, platform: str) -> str:
+        names = self.for_platform(platform)
+        return names[0] if names else "socialdatax"
+
+
+@dataclass
 class Settings:
     fields: FieldNames = field(default_factory=FieldNames)
     tags: Tags = field(default_factory=Tags)
@@ -217,6 +259,7 @@ class Settings:
     digest: DigestFormat = field(default_factory=DigestFormat)
     refresh: RefreshTiers = field(default_factory=RefreshTiers)
     safety: Safety = field(default_factory=Safety)
+    channels: Channels = field(default_factory=Channels)
 
     # 小红书笔记发布多少天内额外调一次 detail 拿点赞/收藏。
     # 设为 0 表示完全不调 detail（省一半钱，代价是没有爆文的点赞维度）。

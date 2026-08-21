@@ -104,11 +104,13 @@ def plan_calls(row: Row, settings: Settings, now: Optional[datetime] = None) -> 
     age_days = row.age_days(now)
 
     if link.platform == "xhs":
-        target = {"note_id": link.content_id} if link.content_id else {"note_url": link.url}
-        # sort_type=default 是唯一正确的选择：它对应 App 里默认看到的综合排序，
-        # 也是置顶评论最可能出现在第一页的排序。换成 time_descending
+        target = {"note_id": link.content_id} if link.content_id else {"url": link.url}
+        # sort=default 是唯一正确的选择：它对应 App 里默认看到的综合排序，
+        # 也是置顶评论最可能出现在第一页的排序。换成按时间倒序
         # 会把老的置顶评论压到最后。
-        calls.append(ToolCall("xhs", "comments", {**target, "sort_type": "default"}))
+        # 参数名是抽象的——两家叫法不同（sort_type / sort_strategy），
+        # 由 providers 层各自翻译。
+        calls.append(ToolCall("xhs", "comments", {**target, "sort": "default"}))
 
         want_detail = settings.detail_within_days > 0 and (
             age_days is None or age_days <= settings.detail_within_days
@@ -127,8 +129,27 @@ def plan_calls(row: Row, settings: Settings, now: Optional[datetime] = None) -> 
 
 
 def estimate_credits(rows: list[Row], settings: Settings, now: Optional[datetime] = None) -> int:
-    """预估这一批要花多少积分。10 积分/次，1 积分 = 0.01 元。
+    """预估这一批要花多少积分（按 SocialDataX 计价：10 积分/次，1 积分 = 0.01 元）。
 
     批量跑之前先报数给人看，比事后对账单强。
+    走 TikHub 时积分这个单位不成立，用 estimate_yuan() 看钱。
     """
     return sum(len(plan_calls(row, settings, now)) for row in rows) * 10
+
+
+def estimate_yuan(rows: list[Row], settings: Settings, now: Optional[datetime] = None) -> float:
+    """预估这一批要花多少钱，按每个平台**实际会走的那家**的单价算。
+
+    双通道之后两家单价差 10 倍（抖音），继续用「积分」这一个单位报数就是骗人。
+    """
+    from . import providers
+
+    total = 0.0
+    for row in rows:
+        for call in plan_calls(row, settings, now):
+            name = settings.channels.primary(call.platform)
+            try:
+                total += providers.get_provider(name).yuan_per_call(call.platform, call.purpose)
+            except ValueError:
+                total += providers.SOCIALDATAX_YUAN
+    return total

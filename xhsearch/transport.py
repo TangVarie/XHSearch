@@ -89,6 +89,49 @@ def _read(resp: Any) -> Response:
     )
 
 
+def request(method: str, url: str, headers: dict[str, str], body: str = "",
+            timeout: float = 30.0) -> Response:
+    """按方法名分发。双通道之后两家的动词不一样：
+    SocialDataX 是 POST + JSON body，TikHub 是 GET + query string。"""
+    if (method or "POST").upper() == "GET":
+        return get(url, headers, timeout=timeout)
+    return post(url, headers, body, timeout=timeout)
+
+
+def request_with_retry(
+    method: str,
+    url: str,
+    headers: dict[str, str],
+    body: str = "",
+    *,
+    timeout: float = 30.0,
+    attempts: int = 3,
+    base_delay: float = 2.0,
+    should_retry=None,
+    deadline: Optional[float] = None,
+    sleep=None,
+) -> Response:
+    """带指数退避的请求，GET/POST 通用。语义见 post_with_retry。"""
+    last = Response(0, "", "未发起任何请求")
+    for attempt in range(attempts):
+        if deadline is not None and time.monotonic() >= deadline:
+            return Response(0, "", "已到本次运行的软截止，剩余重试留给下一轮")
+        last = request(method, url, headers, body, timeout=timeout)
+        if last.ok:
+            return last
+        if should_retry is not None and not should_retry(last):
+            return last
+        if attempt == attempts - 1:
+            break
+        delay = base_delay * (2 ** attempt)
+        if deadline is not None and time.monotonic() + delay >= deadline:
+            return last
+        # 在调用时才取 time.sleep，而不是绑在默认参数上——绑死了测试就 patch 不掉，
+        # 一个重试用例能让整个测试套慢好几秒。
+        (sleep or time.sleep)(delay)
+    return last
+
+
 def post_with_retry(
     url: str,
     headers: dict[str, str],
@@ -111,21 +154,8 @@ def post_with_retry(
     这种有 60 秒硬上限的地方，宁可把这一条留给下一轮，也不能让整个节点超时，
     因为超时会把已经跑完的几十条结果一起丢掉。
     """
-    last = Response(0, "", "未发起任何请求")
-    for attempt in range(attempts):
-        if deadline is not None and time.monotonic() >= deadline:
-            return Response(0, "", "已到本次运行的软截止，剩余重试留给下一轮")
-        last = post(url, headers, body, timeout=timeout)
-        if last.ok:
-            return last
-        if should_retry is not None and not should_retry(last):
-            return last
-        if attempt == attempts - 1:
-            break
-        delay = base_delay * (2 ** attempt)
-        if deadline is not None and time.monotonic() + delay >= deadline:
-            return last
-        # 在调用时才取 time.sleep，而不是绑在默认参数上——绑死了测试就 patch 不掉，
-        # 一个重试用例能让整个测试套慢好几秒。
-        (sleep or time.sleep)(delay)
-    return last
+    return request_with_retry(
+        "POST", url, headers, body,
+        timeout=timeout, attempts=attempts, base_delay=base_delay,
+        should_retry=should_retry, deadline=deadline, sleep=sleep,
+    )

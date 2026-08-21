@@ -51,8 +51,48 @@ class TestCozeBundle(unittest.TestCase):
             "decide", "decide_pin", "Pin", "gone_verdict", "suspect_verdict",
             "merge", "format_digest", "format_pinned", "parse_response", "build_body",
             "headers", "endpoint", "Failure", "FATAL", "Err", "Ok", "main",
+            # 双通道：这几个漏剥一个，扣子那边会直接 NameError，
+            # 而且只能在网页运行记录里看到，排查成本极高。
+            "get_provider", "usable_order", "FAILOVER_KINDS", "Channels",
+            "channel_call", "TIKHUB_PATHS", "REGISTRY",
         ]:
             self.assertIn(name, self.namespace, f"打包产物里缺 {name}")
+
+    def test_both_channels_are_wired_inside_bundle(self):
+        """打包产物里两家都要能组包——这一条是 providers 层被剥坏的第一现场。"""
+        ns = self.namespace
+        tik = ns["get_provider"]("tikhub").build(
+            "k", "xhs", "comments", {"note_id": "n" * 24, "sort": "default"})
+        self.assertEqual(tik.method, "GET")
+        self.assertIn("api.tikhub.dev", tik.url)
+        self.assertIn("Mozilla/", tik.headers["User-Agent"])
+
+        sdx = ns["get_provider"]("socialdatax").build(
+            "k", "xhs", "comments", {"note_id": "n" * 24, "sort": "default"})
+        self.assertEqual(sdx.method, "POST")
+
+    def test_tikhub_normalisation_works_inside_bundle(self):
+        """置顶标记藏在 show_tags_v2 里。归一化被剥坏的话这里立刻炸。"""
+        import json as _json
+
+        ns = self.namespace
+        body = _json.dumps({"code": 200, "data": {"code": 0, "success": True, "data": {
+            "comments": [{"content": "戳主页", "like_count": 9, "ip_location": "Shanghai",
+                          "show_tags_v2": [{"type": "user_top"}],
+                          "user": {"nickname": "官号"}}],
+            "comment_count": 88, "comment_count_l1": 80,
+            "all_sort_strategies": [{"type": "default"}], "user_id": "u1",
+        }}}, ensure_ascii=False)
+        res = ns["get_provider"]("tikhub").parse(
+            "xhs", "comments", 200, "application/json", body, "rid", "k")
+        snapshot = ns["read_comment_page"]("xhs", res.data)
+        self.assertEqual(snapshot.comment_count, 88)
+        self.assertIsNotNone(snapshot.pinned)
+        self.assertEqual(snapshot.comments[0].ip_location, "上海")
+
+    def test_failover_never_fires_on_gone(self):
+        ns = self.namespace
+        self.assertNotIn(ns["Failure"].GONE, ns["FAILOVER_KINDS"])
 
     def test_link_parsing_works_inside_bundle(self):
         parsed = self.namespace["parse"]("https://www.xiaohongshu.com/explore/" + "b" * 24)

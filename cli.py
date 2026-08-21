@@ -16,8 +16,8 @@ import os
 import sys
 from datetime import datetime, timezone
 
-from xhsearch import feishu, rows as rows_mod, runner
-from xhsearch.config import Settings
+from xhsearch import feishu, providers, rows as rows_mod, runner
+from xhsearch.config import Channels, Settings
 
 
 def _env(name: str, *, required: bool = True, default: str = "") -> str:
@@ -25,6 +25,18 @@ def _env(name: str, *, required: bool = True, default: str = "") -> str:
     if required and not value:
         sys.exit(f"缺少环境变量 {name}（参考 .env.example）")
     return value
+
+
+def _api_keys() -> dict[str, str]:
+    """双通道的凭据。两个都配就自动开降级；只配一个也能跑。
+
+    环境变量名和供应商名一一对应，加第三家时不用改这里的结构。
+    """
+    keys = {
+        providers.TIKHUB: os.environ.get("TIKHUB_API_KEY", "").strip(),
+        providers.SOCIALDATAX: os.environ.get("SOCIALDATAX_API_KEY", "").strip(),
+    }
+    return {k: v for k, v in keys.items() if v}
 
 
 def _table() -> feishu.Bitable:
@@ -44,6 +56,20 @@ def _settings() -> Settings:
         settings.max_concurrency = int(os.environ["MAX_CONCURRENCY"])
     if os.environ.get("DETAIL_WITHIN_DAYS"):
         settings.detail_within_days = int(os.environ["DETAIL_WITHIN_DAYS"])
+    # CHANNEL_ORDER="xhs=tikhub,socialdatax; douyin=tikhub"
+    # 想把某个平台钉死在一家时用，不改代码。
+    spec = os.environ.get("CHANNEL_ORDER", "").strip()
+    if spec:
+        order = {}
+        for chunk in spec.split(";"):
+            if "=" not in chunk:
+                continue
+            platform, names = chunk.split("=", 1)
+            picked = [n.strip().lower() for n in names.split(",") if n.strip()]
+            if picked:
+                order[platform.strip()] = picked
+        if order:
+            settings.channels = Channels(order=order)
     return settings
 
 
@@ -105,12 +131,22 @@ def cmd_doctor() -> int:
         print("失败")
         problems.append(str(exc))
 
-    print("④ SocialDataX Key …", end=" ", flush=True)
-    if os.environ.get("SOCIALDATAX_API_KEY", "").strip():
-        print("已配置（是否有效需要真实调用一次才知道）")
-    else:
-        print("缺失")
-        problems.append("没有 SOCIALDATAX_API_KEY，任何刷新都会立刻失败")
+    print("④ 数据通道 …")
+    keys = _api_keys()
+    for platform in ("xhs", "douyin"):
+        order = settings.channels.for_platform(platform)
+        live = providers.usable_order(settings.channels, platform, keys)
+        label = "小红书" if platform == "xhs" else "抖音"
+        if not live:
+            print(f"   {label}：❌ 配置的是 {'、'.join(order)}，但一个 Key 都没有")
+            problems.append(f"{label}没有可用的数据通道，任何刷新都会立刻失败")
+        elif len(live) == 1:
+            print(f"   {label}：⚠ 只有 {live[0]} 一条通道，它挂了这一轮就全丢")
+        else:
+            print(f"   {label}：✅ {live[0]} 为主，{'、'.join(live[1:])} 兜底")
+    if keys:
+        print(f"   已配置的 Key：{'、'.join(sorted(keys))}"
+              "（是否有效需要真实调用一次才知道）")
 
     print()
     if problems:
@@ -125,7 +161,10 @@ def cmd_doctor() -> int:
 def _run(mode: str, record_ids: list[str] | None) -> int:
     settings = _settings()
     table = _table()
-    api_key = _env("SOCIALDATAX_API_KEY")
+    api_keys = _api_keys()
+    if not api_keys:
+        sys.exit("一个数据通道的 Key 都没配：需要 TIKHUB_API_KEY 或 SOCIALDATAX_API_KEY"
+                 "（参考 .env.example）")
     now = datetime.now(timezone.utc)
 
     print(f"读表（模式：{mode}）…")
@@ -141,14 +180,17 @@ def _run(mode: str, record_ids: list[str] | None) -> int:
         print("没有需要刷新的行。")
         return 0
 
-    credits = rows_mod.estimate_credits(row_list, settings, now)
-    print(f"待刷 {len(row_list)} 行，预计消耗 {credits} 积分 ≈ ¥{credits / 100:.2f}")
+    yuan = rows_mod.estimate_yuan(row_list, settings, now)
+    print(f"待刷 {len(row_list)} 行，预计花费 ≈ ¥{yuan:.2f}"
+          f"（按每个平台的主通道单价算："
+          f"小红书走 {settings.channels.primary('xhs')}，"
+          f"抖音走 {settings.channels.primary('douyin')}）")
 
     if mode == "estimate":
         return 0
 
     report = runner.refresh(
-        row_list, api_key, settings,
+        row_list, api_keys, settings,
         now=now,
         known_options=table.list_field_options(settings.fields.traffic_status),
         comment_status_options=table.list_field_options(settings.fields.comment_status),

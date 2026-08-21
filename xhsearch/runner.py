@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from . import analyze, feishu, protocol, tags, transport
+from . import analyze, feishu, protocol, providers, tags, transport
 from .config import Settings
 from .rows import Row, ToolCall, plan_calls
 
@@ -37,7 +37,10 @@ class Outcome:
     status: str
     fields: dict[str, Any] = field(default_factory=dict)
     reason: str = ""
+    # 积分只对 SocialDataX 有意义。双通道之后两家单价差 10 倍（抖音），
+    # 唯一能跨供应商相加的单位是钱，所以真正的账在 cost_yuan 上。
     credits: int = 0
+    cost_yuan: float = 0.0
 
 
 @dataclass
@@ -50,10 +53,17 @@ class RunReport:
     fatal: bool = False
     breaker_tripped: bool = False
     points_balance: Optional[int] = None
+    # 本轮实际用过的供应商，以及降级次数——写进日志，免得「怎么突然贵/便宜了」查不出来。
+    used_providers: dict[str, int] = field(default_factory=dict)
+    failovers: int = 0
 
     @property
     def credits(self) -> int:
         return sum(o.credits for o in self.outcomes)
+
+    @property
+    def cost_yuan(self) -> float:
+        return sum(o.cost_yuan for o in self.outcomes)
 
     def counts(self) -> dict[str, int]:
         tally: dict[str, int] = {}
@@ -64,9 +74,14 @@ class RunReport:
     def summary(self) -> str:
         parts = [f"{k} {v}" for k, v in sorted(self.counts().items())]
         line = f"处理 {len(self.outcomes)} 行（{'，'.join(parts) or '无'}），"
-        line += f"消耗 {self.credits} 积分 ≈ ¥{self.credits / 100:.2f}"
+        line += f"花费 ≈ ¥{self.cost_yuan:.2f}"
+        if self.used_providers:
+            via = "、".join(f"{k} {v} 次" for k, v in sorted(self.used_providers.items()))
+            line += f"（{via}）"
+        if self.failovers:
+            line += f"，其中 {self.failovers} 次是主通道失败后降级完成的"
         if self.points_balance is not None:
-            line += f"，余额 {self.points_balance} 积分 ≈ ¥{self.points_balance / 100:.2f}"
+            line += f"，SocialDataX 余额 {self.points_balance} 积分 ≈ ¥{self.points_balance / 100:.2f}"
         if self.breaker_tripped:
             line += "\n🛑 已熔断：本批失效比例异常偏高，所有流量状态写入已作废"
         if self.aborted_reason:
@@ -82,70 +97,208 @@ class _Abort(Exception):
         super().__init__(reason)
 
 
-def _call(api_key: str, call: ToolCall, *, deadline: Optional[float], timeout: float) -> protocol.Result:
-    response = transport.post_with_retry(
-        protocol.endpoint(call.platform, call.purpose),
-        protocol.headers(api_key),
-        protocol.build_body(call.arguments),
+def _looks_alive(snapshot: Optional[analyze.Snapshot]) -> bool:
+    """这一轮有没有拿到「这篇内容还活着」的正面证据。
+
+    有评论、或者评论数大于 0，就算活着。评论数为 0 不算证据——
+    刚发的帖子和已经没了的帖子都是 0。
+    """
+    if snapshot is None:
+        return False
+    return bool(snapshot.comments) or bool(snapshot.comment_count)
+
+
+@dataclass
+class _Spend:
+    """这一次「取数」总共花掉了什么。跨供应商唯一能相加的单位是钱。
+
+    是累加而不是覆盖：一次降级会真的产生两笔调用，其中失败的那笔也可能已经扣了钱。
+    只记成功的那笔，账面就会比账单少，而少报成本的监控系统没有任何价值。
+    """
+
+    credits: int = 0
+    yuan: float = 0.0
+    provider: str = ""
+    tally: dict[str, int] = field(default_factory=dict)
+
+
+def _was_billed(provider_name: str, result: protocol.Result) -> bool:
+    """这次失败是不是照样扣了钱。
+
+    TikHub 自己的接口文档写着：传入不存在的笔记 ID，接口**正常响应、正常计费**，
+    只是 data 里是个空壳。我们把那个空壳翻译成 GONE，但钱是真花了。
+    判据是「HTTP 层面成功、业务层面失败」——鉴权失败(401)、参数非法(400)
+    这类根本没进业务层的，对方明说不计费。
+
+    是不是收费按供应商定（Provider.bills_failed_lookups），不能一刀切：
+    SocialDataX 那边这件事还没验过，凭猜测把账单虚高比少报更糟。
+    """
+    if not isinstance(result, protocol.Err):
+        return False
+    if not providers.get_provider(provider_name).bills_failed_lookups:
+        return False
+    status = result.http_status
+    return status is not None and 200 <= status < 300
+
+
+def _call_once(
+    provider_name: str,
+    api_key: str,
+    call: ToolCall,
+    *,
+    deadline: Optional[float],
+    timeout: float,
+) -> protocol.Result:
+    provider = providers.get_provider(provider_name)
+    request = provider.build(api_key, call.platform, call.purpose, call.arguments)
+    response = transport.request_with_retry(
+        request.method,
+        request.url,
+        request.headers,
+        request.body,
         timeout=timeout,
         deadline=deadline,
-        # 传输层只按 HTTP 状态判重试。业务错误走的是 HTTP 200 + body 里的 code，
+        # 传输层只按 HTTP 状态判重试。业务错误可能走 HTTP 200 + body 里的字段，
         # 传输层看不见，必须由下面按解析结果处理。
         should_retry=lambda r: r.status == 0 or r.status >= 500,
     )
-    return protocol.parse_response(
-        response.status, response.content_type, response.body, response.request_id
+    return provider.parse(
+        call.platform, call.purpose,
+        response.status, response.content_type, response.body,
+        response.request_id, api_key,
     )
+
+
+def _call(
+    call: ToolCall,
+    keys: dict[str, str],
+    settings: Settings,
+    *,
+    deadline: Optional[float],
+    timeout: float,
+    disabled: set[str],
+    spend: _Spend,
+) -> protocol.Result:
+    """双通道：主通道失败就降到备胎，而不是让整批停下。
+
+    AUTH / QUOTA 在单通道时代是「整批立刻停」，因为再打也是白打。有了备胎之后
+    它们的正确处置变成「把这家标记为本轮不可用，换一家继续」——只有**所有**
+    通道都倒下才轮到 _Abort。这就是双通道真正值钱的地方：
+    半夜 TikHub 余额见底不再意味着整晚的监控全丢。
+    """
+    order = providers.usable_order(settings.channels, call.platform, keys, disabled)
+    if not order:
+        return protocol.Err(
+            protocol.Failure.AUTH, "no_channel",
+            f"{call.platform} 没有可用的数据通道了（key 没配，或本轮全部失效）",
+            definitive=True,
+        )
+
+    last: protocol.Result = protocol.Err(protocol.Failure.UNKNOWN, "no_attempt", "没有发起任何请求")
+    for index, name in enumerate(order):
+        result = _call_once(name, keys[name], call, deadline=deadline, timeout=timeout)
+
+        if isinstance(result, protocol.Ok) or _was_billed(name, result):
+            spend.provider = name
+            spend.yuan += providers.get_provider(name).yuan_per_call(call.platform, call.purpose)
+            spend.credits += (getattr(result, "points_cost", None)
+                              or (10 if name == providers.SOCIALDATAX else 0))
+            spend.tally[name] = spend.tally.get(name, 0) + 1
+
+        if isinstance(result, protocol.Ok):
+            return result
+
+        last = result
+        if result.kind in (protocol.Failure.AUTH, protocol.Failure.QUOTA):
+            # 这家这一轮别再用了：600 行 × 每行都撞一次同样的 401，
+            # 既慢又会把限流打出来。
+            disabled.add(name)
+        if result.kind not in providers.FAILOVER_KINDS or index == len(order) - 1:
+            return result
+        # 换下一家。上面已经把这笔（如果被计费了的话）记进账了。
+
+    return last
 
 
 def _fetch_one(
     row: Row,
-    api_key: str,
+    keys: dict[str, str],
     settings: Settings,
     *,
     now: datetime,
     deadline: Optional[float],
     timeout: float,
-) -> tuple[Optional[analyze.Snapshot], Optional[protocol.Err], int]:
-    """跑完一行需要的全部调用。返回（快照, 终局错误, 消耗积分）。"""
+    disabled: set[str],
+    tally: dict[str, int],
+) -> tuple[Optional[analyze.Snapshot], Optional[protocol.Err], int, float, int]:
+    """跑完一行需要的全部调用。
+
+    返回（快照, 终局错误, 消耗积分, 花费元, 降级次数）。
+    """
     calls = plan_calls(row, settings, now)
     if not calls:
         return None, protocol.Err(
             protocol.Failure.UNKNOWN, "bad_link", row.parsed.describe_failure()
-        ), 0
+        ), 0, 0.0, 0
 
     snapshot: Optional[analyze.Snapshot] = None
     credits = 0
+    yuan = 0.0
+    failovers = 0
+
+    def attempt(c: ToolCall) -> protocol.Result:
+        nonlocal credits, yuan, failovers
+        spend = _Spend()
+        primary = settings.channels.primary(c.platform)
+        result = _call(c, keys, settings, deadline=deadline, timeout=timeout,
+                       disabled=disabled, spend=spend)
+        credits += spend.credits
+        yuan += spend.yuan
+        for name, count in spend.tally.items():
+            tally[name] = tally.get(name, 0) + count
+        if spend.provider and spend.provider != primary:
+            failovers += 1
+        return result
 
     for call in calls:
-        result = _call(api_key, call, deadline=deadline, timeout=timeout)
+        result = attempt(call)
 
         if isinstance(result, protocol.Err):
             if result.kind in protocol.FATAL:
+                # 走到这里说明**所有**通道都是 AUTH/QUOTA，备胎也没了。
                 raise _Abort(str(result))
             if result.kind is protocol.Failure.RATE_LIMIT:
                 # 退避一次再试。再限流就把这一行留给下一轮，别拖垮整批。
                 time.sleep(result.retry_after_seconds or 5.0)
-                result = _call(api_key, call, deadline=deadline, timeout=timeout)
+                result = attempt(call)
                 if isinstance(result, protocol.Err):
                     if result.kind in protocol.FATAL:
                         raise _Abort(str(result))
-                    return snapshot, result, credits
+                    return snapshot, result, credits, yuan, failovers
+            elif result.kind is protocol.Failure.GONE and not _looks_alive(snapshot):
+                # 「内容没了」是行级结论，不管它是从评论接口还是 detail 冒出来的。
+                # TikHub 通道上最干净的死亡信号恰恰在 detail 里（小红书 data 为 []、
+                # 抖音 aweme_detail 为 null + filter_list 命中），漏掉它
+                # 等于把双通道最好的一个能力扔了。
+                #
+                # 但只在**没有活着的证据**时才认：评论接口刚拿回 200 条评论、
+                # detail 却说笔记不存在，那是上游自相矛盾，这时候信 detail
+                # 就是拿一次上游抖动去杀一条好帖子。
+                return None, result, credits, yuan, failovers
             else:
                 # 评论接口失败 = 这一行的结论；detail 失败只是少几个数字，
                 # 已经拿到的评论数据仍然有效，不该整行判死。
                 if call.purpose == "comments":
-                    return snapshot, result, credits
+                    return snapshot, result, credits, yuan, failovers
                 continue
 
         assert isinstance(result, protocol.Ok)
-        credits += result.points_cost or 10
         if call.purpose == "comments":
             snapshot = analyze.read_comment_page(call.platform, result.data)
         elif snapshot is not None:
             analyze.merge_detail(snapshot, result.data)
 
-    return snapshot, None, credits
+    return snapshot, None, credits, yuan, failovers
 
 
 def _base_fields(settings: Settings, *, status: str, notes: list[str], now: datetime) -> dict[str, Any]:
@@ -162,7 +315,7 @@ def _base_fields(settings: Settings, *, status: str, notes: list[str], now: date
 
 def refresh(
     rows: list[Row],
-    api_key: str,
+    api_key: Any,
     settings: Settings,
     *,
     now: Optional[datetime] = None,
@@ -173,6 +326,9 @@ def refresh(
     progress: Optional[Callable[[str], None]] = None,
 ) -> RunReport:
     """刷新一批行。不写回，只算结果——写回由调用方决定时机。
+
+    api_key 可以是一个字符串（只有一家供应商时的老写法，继续支持），
+    也可以是 {"tikhub": "...", "socialdatax": "..."}——双通道要用后者。
 
     forced=True 表示这是人明确要求的刷新（手动触发），会跳过冷却检查。
 
@@ -189,6 +345,12 @@ def refresh(
     say = progress or (lambda _: None)
     f = settings.fields
 
+    keys = providers.credentials(api_key)
+    # 本轮已经确认不可用的通道（Key 失效、余额耗尽）。多线程共享，
+    # 但只做「加一个字符串」这一种写入，GIL 下天然安全，不值得上锁。
+    disabled: set[str] = set()
+    tally: dict[str, int] = {}
+
     def finish(
         row: Row,
         verdict: analyze.Verdict,
@@ -196,6 +358,7 @@ def refresh(
         *,
         status: str,
         credits: int,
+        cost_yuan: float = 0.0,
         touch_tags: bool = True,
     ) -> Outcome:
         """把判定结果落成待写字段。所有路径都汇总到这里，保证列的写法一致。
@@ -263,7 +426,8 @@ def refresh(
             fields[f.pinned_comment] = analyze.format_pinned(snapshot)
             fields[f.comment_digest] = analyze.format_digest(snapshot, settings.digest)
 
-        return Outcome(row.record_id, status, fields, "；".join(verdict.notes)[:200], credits)
+        return Outcome(row.record_id, status, fields, "；".join(verdict.notes)[:200],
+                       credits, cost_yuan)
 
     def work(row: Row) -> Outcome:
         if not row.parsed.usable:
@@ -274,9 +438,11 @@ def refresh(
             return Outcome(row.record_id, STATUS_COOLDOWN, {},
                            f"{settings.safety.cooldown_seconds} 秒内刚刷过，跳过（不计费）", 0)
 
-        snapshot, error, credits = _fetch_one(
-            row, api_key, settings, now=now, deadline=deadline, timeout=timeout
+        snapshot, error, credits, cost_yuan, failovers = _fetch_one(
+            row, keys, settings, now=now, deadline=deadline, timeout=timeout,
+            disabled=disabled, tally=tally,
         )
+        report.failovers += failovers
 
         # —— 取不到内容：两击定罪 ——
         if snapshot is None and error is not None and error.kind is protocol.Failure.GONE:
@@ -285,11 +451,12 @@ def refresh(
             # 不必等第二次——它已经确定了，再等一轮只是让运营晚一天看到。
             if error.definitive or strikes >= settings.safety.strikes_before_gone:
                 verdict = analyze.gone_verdict(settings, error.operator_text())
-                outcome = finish(row, verdict, None, status=STATUS_GONE, credits=credits)
+                outcome = finish(row, verdict, None, status=STATUS_GONE,
+                                 credits=credits, cost_yuan=cost_yuan)
             else:
                 verdict = analyze.suspect_verdict(settings, strikes, error.operator_text())
                 outcome = finish(row, verdict, None, status=STATUS_SUSPECT,
-                                 credits=credits, touch_tags=False)
+                                 credits=credits, cost_yuan=cost_yuan, touch_tags=False)
             outcome.fields[f.consecutive_failures] = strikes
             return outcome
 
@@ -302,6 +469,7 @@ def refresh(
                 _base_fields(settings, status=STATUS_FAILED, notes=[reason], now=now),
                 reason,
                 credits,
+                cost_yuan,
             )
             outcome.fields[f.consecutive_failures] = (row.consecutive_failures or 0) + 1
             return outcome
@@ -317,10 +485,14 @@ def refresh(
         )
         if error is not None:
             verdict.notes.append(f"（detail 未取到：{error.operator_text()[:120]}）")
+        if snapshot.censored:
+            # 只是提醒，不打标签——这个字段的语义还没在真被封的帖子上验过。
+            verdict.notes.append("⚠ 上游把这条标成了审核中/受限，请人工确认")
         if snapshot.points_balance is not None:
             report.points_balance = snapshot.points_balance
 
-        outcome = finish(row, verdict, snapshot, status=STATUS_OK, credits=credits)
+        outcome = finish(row, verdict, snapshot, status=STATUS_OK,
+                         credits=credits, cost_yuan=cost_yuan)
         outcome.fields[f.consecutive_failures] = 0
         return outcome
 
@@ -339,6 +511,7 @@ def refresh(
     if missed and not report.aborted_reason:
         report.aborted_reason = f"{len(missed)} 行未处理（到达软截止），留给下一轮"
 
+    report.used_providers = dict(tally)
     _apply_circuit_breaker(report, settings)
     return report
 

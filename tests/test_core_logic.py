@@ -426,7 +426,7 @@ class TestCallPlanning(unittest.TestCase):
     def test_fresh_xhs_note_costs_two_calls(self):
         plan = rows.plan_calls(self._row("https://www.xiaohongshu.com/explore/" + "a" * 24), self.settings, self.now)
         self.assertEqual([c.purpose for c in plan], ["comments", "detail"])
-        self.assertEqual(plan[0].arguments["sort_type"], "default")
+        self.assertEqual(plan[0].arguments["sort"], "default")
 
     def test_old_xhs_note_costs_one_call(self):
         plan = rows.plan_calls(
