@@ -245,6 +245,10 @@ python3 -m unittest discover -s tests -t .
 
 要跑在扣子上：[`docs/扣子工作流搭建说明.md`](docs/扣子工作流搭建说明.md) —— 这份文档可以直接连同 `coze_node.py` 一起交给扣子，让它照着生成工作流。
 
+数据供应商的选型（SocialDataX vs TikHub，含逐端点单价与实测风险）见
+[`docs/供应商对比.md`](docs/供应商对比.md)。结论：抖音那部分换 TikHub 稳赚（省 93%），
+小红书那部分取决于对方返不返回 `is_pinned`——花 ¥0.07 用 `tools/probe_tikhub.py` 一测便知。
+
 ---
 
 ## 六、上线前必须验的事
