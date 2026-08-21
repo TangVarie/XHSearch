@@ -27,6 +27,16 @@ def _env(name: str, *, required: bool = True, default: str = "") -> str:
     return value
 
 
+def _apply_endpoint_overrides() -> None:
+    """按部署位置切 TikHub 的接入域名。
+
+    对方文档要求「请勿跨区使用，会影响访问速度」：
+        境内（扣子、国内 VPS）  → api.tikhub.dev（默认，不用设）
+        境外（Railway、Actions）→ TIKHUB_BASE=https://api.tikhub.io
+    """
+    providers.set_tikhub_base(os.environ.get("TIKHUB_BASE", ""))
+
+
 def _api_keys() -> dict[str, str]:
     """双通道的凭据。两个都配就自动开降级；只配一个也能跑。
 
@@ -49,6 +59,7 @@ def _table() -> feishu.Bitable:
 
 
 def _settings() -> Settings:
+    _apply_endpoint_overrides()
     settings = Settings()
     # 独立服务跑批量不需要软截止（那是给扣子 60 秒硬上限准备的）。
     settings.soft_deadline_seconds = float(os.environ.get("SOFT_DEADLINE_SECONDS", "0") or 0)

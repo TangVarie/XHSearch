@@ -83,10 +83,26 @@ class TestTikhubBuild(unittest.TestCase):
         req = providers.get_provider("tikhub").build(KEY, "xhs", "comments", {"note_id": "x"})
         self.assertIn("Mozilla/", req.headers.get("User-Agent", ""))
 
-    def test_mainland_domain(self):
-        """api.tikhub.io 在大陆被墙，必须走 .dev。写死在测试里免得被人改回去。"""
+    def test_default_domain_is_the_one_that_works_everywhere(self):
+        """默认必须是 .dev：api.tikhub.io 在大陆被墙，而 .dev 境内境外都通。
+
+        默认值配错的后果不对称——.dev 在境外只是慢一点，.io 在境内是根本不通。
+        """
         req = providers.get_provider("tikhub").build(KEY, "douyin", "comments", {"aweme_id": "7"})
         self.assertTrue(req.url.startswith("https://api.tikhub.dev/"))
+
+    def test_domain_is_switchable_for_overseas_hosts(self):
+        """对方文档要求「请勿跨区使用」，跑在 Railway 上要切到主域名。"""
+        original = providers.TIKHUB_BASE
+        try:
+            providers.set_tikhub_base("https://api.tikhub.io/")   # 末尾斜杠也要吃掉
+            req = providers.get_provider("tikhub").build(KEY, "xhs", "comments", {"note_id": "n"})
+            self.assertTrue(req.url.startswith("https://api.tikhub.io/api/v1/"))
+            providers.set_tikhub_base("")                          # 空值 = 不改
+            self.assertEqual(providers.TIKHUB_BASE, "https://api.tikhub.io")
+        finally:
+            providers.set_tikhub_base(original)
+        self.assertEqual(providers.TIKHUB_BASE, "https://api.tikhub.dev")
 
     def test_share_link_falls_back_to_share_text(self):
         req = providers.get_provider("tikhub").build(KEY, "xhs", "comments",

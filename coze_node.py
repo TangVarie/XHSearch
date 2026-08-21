@@ -709,8 +709,24 @@ def parse_response(
 SOCIALDATAX = "socialdatax"
 TIKHUB = "tikhub"
 
-# 大陆直连可用；api.tikhub.io 被防火墙拦截（对方文档原文）。
+# TikHub 有两个同功能的域名，**按你的服务器在哪选**（对方文档要求「请勿跨区使用」）：
+#   api.tikhub.dev   境内可直连（api.tikhub.io 在大陆被防火墙拦截）
+#   api.tikhub.io    主域名，境外服务器（Railway / GitHub Actions）用这个
+# 默认取 .dev：它两边都通（境外也实测可用），配错了最多是慢一点，不会不通。
+# 跑在境外就设环境变量 TIKHUB_BASE=https://api.tikhub.io。
 TIKHUB_BASE = "https://api.tikhub.dev"
+
+
+def set_tikhub_base(url: str) -> None:
+    """改 TikHub 的接入域名。
+
+    做成函数而不是读环境变量，是因为这份代码要整段粘进扣子代码节点——
+    那边没有环境变量这回事。宿主（cli.py）负责从环境里读，扣子那边用默认值。
+    """
+    global TIKHUB_BASE
+    cleaned = (url or "").strip().rstrip("/")
+    if cleaned:
+        TIKHUB_BASE = cleaned
 
 # Cloudflare 会按 UA 拦截，裸的 Python-urllib/3.x 直接 403。
 _BROWSER_UA = (

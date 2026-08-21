@@ -66,7 +66,8 @@ def probe(name: str, key: str, link: str, settings: Settings) -> bool:
             if result.kind.value == "auth":
                 print(f"     → 检查 {ENV[name]} 是否填对")
             if name == providers.TIKHUB and result.kind.value == "transport":
-                print("     → 大陆网络确认能出网到 api.tikhub.dev（api.tikhub.io 被墙）")
+                print(f"     → 确认这台机器能出网到 {providers.TIKHUB_BASE}")
+                print("       境内用 api.tikhub.dev，境外设 TIKHUB_BASE=https://api.tikhub.io")
             ok = False
             if call.purpose == "comments":
                 break
@@ -109,6 +110,7 @@ def main() -> int:
     if "--only" in sys.argv:
         only = sys.argv[sys.argv.index("--only") + 1].strip().lower()
 
+    providers.set_tikhub_base(os.environ.get("TIKHUB_BASE", ""))
     settings = Settings()
     if not parse(link).usable:
         print(f"链接识别不了：{parse(link).describe_failure()}", file=sys.stderr)
