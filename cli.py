@@ -160,7 +160,9 @@ def _run(mode: str, record_ids: list[str] | None) -> int:
 
     written = runner.write_back(table, report)
     print(f"已写回 {written} 行")
-    return 1 if report.aborted_reason else 0
+    # 只有真故障才返回非零。到软截止后「留给下一轮」是正常运行，
+    # 返回非零会让 cron / 云平台的重启策略把它当失败反复重启。
+    return 1 if report.fatal else 0
 
 
 def main(argv: list[str]) -> int:

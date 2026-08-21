@@ -44,6 +44,10 @@ class Outcome:
 class RunReport:
     outcomes: list[Outcome] = field(default_factory=list)
     aborted_reason: str = ""
+    # 真正的故障（Key 失效、积分耗尽）才置 True。
+    # 「有几行没跑完，留给下一轮」也会填 aborted_reason，但那是正常运行——
+    # 两者必须分开，否则定时任务会把正常的分批执行当成失败反复重启。
+    fatal: bool = False
     breaker_tripped: bool = False
     points_balance: Optional[int] = None
 
@@ -328,6 +332,7 @@ def refresh(
                 say(f"  {outcome.record_id} → {outcome.status} {outcome.reason}".rstrip())
     except _Abort as abort:
         report.aborted_reason = abort.reason
+        report.fatal = True
 
     done = {o.record_id for o in report.outcomes}
     missed = [r for r in pending if r.record_id not in done]

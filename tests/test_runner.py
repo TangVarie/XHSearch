@@ -435,3 +435,30 @@ class TestPinnedTracking(RunnerTest):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestExitSignal(RunnerTest):
+    """退出码要能区分「真故障」和「正常分批」——定时任务的重启策略靠它。"""
+
+    def test_fatal_error_is_marked_fatal(self):
+        report = self.run_with([err(401, 1401, "API Key 无效或已失效。")], [xhs_row()])
+        self.assertTrue(report.fatal)
+
+    def test_quota_exhausted_is_fatal(self):
+        report = self.run_with([err(200, 1004, "当前 API Key 积分不足。")], [xhs_row()])
+        self.assertTrue(report.fatal)
+
+    def test_soft_deadline_is_not_fatal(self):
+        """到软截止把剩余的行留给下一轮，是正常运行不是失败。
+        判错这条会让云平台把每一轮正常分批都当成崩溃，反复重启。"""
+        self.settings.soft_deadline_seconds = 0.0001
+        rows = [xhs_row(f"rec{i}") for i in range(5)]
+        report = self.run_with(lambda *a, **k: sse(comment_page()), rows)
+        self.assertFalse(report.fatal)
+
+    def test_normal_run_is_not_fatal(self):
+        report = self.run_with(
+            [sse(comment_page()), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
+            [xhs_row()])
+        self.assertFalse(report.fatal)
+        self.assertEqual(report.aborted_reason, "")
