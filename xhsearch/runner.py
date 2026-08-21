@@ -208,7 +208,6 @@ def refresh(
                 verdict.tags,
                 settings.tags.namespace(),
                 known_options=known_options,
-                sticky=settings.tags.sticky(),
             )
             if merged.dropped_unknown:
                 fields[f.failure_reason] = (
@@ -221,8 +220,16 @@ def refresh(
             if merged.changed:
                 fields[f.traffic_status] = merged.final
 
-        if verdict.pinned_state:
-            fields[f.pinned_state] = verdict.pinned_state
+        # 「评论状态」是运营手工维护的单选列，机器只在确认置顶成功时覆盖。
+        # 掉置顶时默认不动这一列（见 PinnedPolicy.overwrite_on_lost 的说明），
+        # 事实只写进诊断信息。
+        if verdict.pin is analyze.Pin.SUCCESS:
+            fields[f.comment_status] = settings.pinned.success_value
+        elif settings.pinned.overwrite_on_lost and verdict.pin in (
+            analyze.Pin.REPLACED, analyze.Pin.LOST, analyze.Pin.SEED_MISSING
+        ):
+            fields[f.comment_status] = settings.pinned.lost_value
+
         if row.parsed.platform:
             fields[f.platform] = "小红书" if row.parsed.platform == "xhs" else "抖音"
 
@@ -288,7 +295,8 @@ def refresh(
             previous_comment_count=row.previous_comment_count,
             age_hours=row.age_hours(now),
             expected_pinned=row.expected_pinned,
-            previous_pinned_state=row.pinned_state,
+            current_tags=row.current_tags,          # 热度档位的棘轮要看现有档位
+            previous_comment_status=row.comment_status,
         )
         if error is not None:
             verdict.notes.append(f"（detail 未取到：{error.operator_text()[:120]}）")
@@ -388,7 +396,7 @@ def load_rows(
             previous_comment_count=feishu.read_int(cells.get(f.comment_count)),
             last_updated_ms=feishu.read_timestamp_ms(cells.get(f.last_updated)),
             consecutive_failures=feishu.read_int(cells.get(f.consecutive_failures)) or 0,
-            pinned_state=feishu.read_text(cells.get(f.pinned_state)),
+            comment_status=feishu.read_text(cells.get(f.comment_status)),
             queued=feishu.read_bool(cells.get(f.queued)),
         )
         # 手动触发时无视分层节流——人明确要求刷新，就该刷。

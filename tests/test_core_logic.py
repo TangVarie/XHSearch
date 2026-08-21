@@ -72,26 +72,26 @@ class TestLinkParsing(unittest.TestCase):
 
 
 class TestTagMerge(unittest.TestCase):
-    NS = ["爆文", "风控", "置顶成功", "已失效"]
+    NS = ["评估中", "爆贴", "大爆", "风控", "已失效"]
 
     def test_human_tags_survive(self):
-        result = tags.merge(["已复盘", "客户确认", "爆文"], {"风控"}, self.NS)
+        result = tags.merge(["已复盘", "客户确认", "爆贴"], {"风控"}, self.NS)
         self.assertIn("已复盘", result.final)
         self.assertIn("客户确认", result.final)
         self.assertIn("风控", result.final)
-        self.assertNotIn("爆文", result.final)   # 机器标签可以撤回
-        self.assertEqual(result.removed, ["爆文"])
+        self.assertNotIn("爆贴", result.final)   # 机器标签可以撤回
+        self.assertEqual(result.removed, ["爆贴"])
         self.assertEqual(result.added, ["风控"])
 
     def test_idempotent(self):
-        first = tags.merge(["爆文"], {"爆文"}, self.NS)
-        self.assertEqual(first.final, ["爆文"])
+        first = tags.merge(["爆贴"], {"爆贴"}, self.NS)
+        self.assertEqual(first.final, ["爆贴"])
         self.assertFalse(first.changed)
 
     def test_unknown_option_is_dropped_not_written(self):
-        result = tags.merge([], {"爆文"}, self.NS, known_options=["风控", "已失效"])
+        result = tags.merge([], {"爆贴"}, self.NS, known_options=["风控", "已失效"])
         self.assertEqual(result.final, [])
-        self.assertEqual(result.dropped_unknown, ["爆文"])
+        self.assertEqual(result.dropped_unknown, ["爆贴"])
 
     def test_computed_tag_outside_namespace_raises(self):
         with self.assertRaises(ValueError):
@@ -176,7 +176,6 @@ class TestPinnedState(unittest.TestCase):
 
     def setUp(self):
         self.settings = Settings()
-        self.ps = self.settings.pinned_states
 
     def _snap(self, comments, platform="xhs"):
         items = [
@@ -187,145 +186,164 @@ class TestPinnedState(unittest.TestCase):
         return analyze.read_comment_page(platform, {"items": items, "comment_count": len(items)})
 
     def state(self, comments, expected, platform="xhs"):
-        return analyze.decide_pinned_state(self._snap(comments, platform), expected, self.settings)[0]
+        return analyze.decide_pin(self._snap(comments, platform), expected)[0]
 
     def test_our_comment_is_pinned(self):
-        self.assertEqual(
-            self.state([("戳主页领 30 元优惠券～", True)], "戳主页领30元优惠券"),
-            self.ps.success)
+        self.assertIs(self.state([("戳主页领 30 元优惠券～", True)], "戳主页领30元优惠券"),
+                      analyze.Pin.SUCCESS)
 
     def test_emoji_and_whitespace_tolerated(self):
-        self.assertEqual(
-            self.state([("戳 主页  领 30 元优惠券 🎁✨", True)], "戳主页领30元优惠券"),
-            self.ps.success)
+        self.assertIs(self.state([("戳 主页  领 30 元优惠券 🎁✨", True)], "戳主页领30元优惠券"),
+                      analyze.Pin.SUCCESS)
 
     def test_pin_taken_over_by_someone_else(self):
-        state = self.state(
-            [("楼主是不是恰饭了", True), ("戳主页领30元优惠券", False)],
-            "戳主页领30元优惠券")
-        self.assertEqual(state, self.ps.replaced)
+        self.assertIs(
+            self.state([("楼主是不是恰饭了", True), ("戳主页领30元优惠券", False)],
+                       "戳主页领30元优惠券"),
+            analyze.Pin.REPLACED)
 
     def test_pin_dropped_but_our_comment_still_there(self):
-        state = self.state(
-            [("好用", False), ("戳主页领30元优惠券", False)],
-            "戳主页领30元优惠券")
-        self.assertEqual(state, self.ps.lost)
+        self.assertIs(
+            self.state([("好用", False), ("戳主页领30元优惠券", False)], "戳主页领30元优惠券"),
+            analyze.Pin.LOST)
 
     def test_our_comment_gone_entirely(self):
-        self.assertEqual(self.state([("路过", False)], "戳主页领30元优惠券"), self.ps.seed_missing)
+        self.assertIs(self.state([("路过", False)], "戳主页领30元优惠券"), analyze.Pin.SEED_MISSING)
 
     def test_no_seed_configured_but_pin_exists(self):
-        self.assertEqual(self.state([("随便什么", True)], ""), self.ps.no_seed)
+        self.assertIs(self.state([("随便什么", True)], ""), analyze.Pin.NO_SEED)
 
     def test_no_seed_and_no_pin(self):
-        self.assertEqual(self.state([("路过", False)], ""), self.ps.none_pinned)
+        self.assertIs(self.state([("路过", False)], ""), analyze.Pin.NONE_PINNED)
 
     def test_douyin_always_unsupported(self):
-        self.assertEqual(
+        self.assertIs(
             self.state([("哈哈", False)], "戳主页领30元优惠券", platform="douyin"),
-            self.ps.douyin_unsupported)
+            analyze.Pin.UNSUPPORTED)
 
     def test_too_short_seed_refuses_to_match(self):
         # 「券」这种一两个字的关键词会命中一大半评论，宁可判不出也不认错人
-        self.assertEqual(self.state([("求券", True)], "券"), self.ps.replaced)
+        self.assertIs(self.state([("求券", True)], "券"), analyze.Pin.REPLACED)
 
-    def test_position_written_into_note_not_into_option_value(self):
-        _, note = analyze.decide_pinned_state(
+    def test_position_written_into_note(self):
+        _, note = analyze.decide_pin(
             self._snap([("别人的置顶", True), ("x", False), ("戳主页领30元优惠券", False)]),
-            "戳主页领30元优惠券", self.settings)
+            "戳主页领30元优惠券")
         self.assertIn("第 3 条", note)
 
-    def test_every_state_is_in_the_frozen_enum(self):
-        """单选值绝不能含变量——否则飞书会静默新建选项，几周后长出几十个。"""
-        allowed = set(self.ps.all())
-        cases = [
-            ([("a", True)], "a"), ([("a", True)], ""), ([("a", False)], "zzz"),
-            ([], "x"), ([], ""), ([("a", True)], "bbbbbbbbbb"),
-        ]
-        for comments, expected in cases:
-            for platform in ("xhs", "douyin"):
-                self.assertIn(self.state(comments, expected, platform), allowed)
 
+class TestHeatTiers(unittest.TestCase):
+    """热度三档：≥20 评估中，≥50 爆贴，≥100 大爆。互斥，取最高，只升不降。"""
 
-class TestTagDecision(unittest.TestCase):
     def setUp(self):
         self.settings = Settings()
 
-    def _snap(self, count, pinned=False, platform="xhs"):
-        items = []
-        if pinned:
-            items.append({"content": "官方置顶文案在此", "is_pinned": True, "is_author_comment": True,
-                          "like_count": 0, "ip_location": "", "author": {"name": "官号"}})
-        return analyze.read_comment_page(platform, {"items": items, "comment_count": count})
+    def _snap(self, count, platform="xhs"):
+        return analyze.read_comment_page(platform, {"items": [], "comment_count": count})
 
-    def decide(self, snap, **kw):
+    def decide(self, count, **kw):
         kw.setdefault("previous_comment_count", None)
         kw.setdefault("age_hours", 10)
-        return analyze.decide(snap, self.settings, **kw)
+        return analyze.decide(self._snap(count), self.settings, **kw)
 
-    def test_hot_threshold_is_platform_specific(self):
-        # 小红书 50 / 抖音 200：同样 100 条评论，一个爆一个不爆
-        self.assertIn("爆文", self.decide(self._snap(100, platform="xhs")).tags)
-        self.assertNotIn("爆文", self.decide(self._snap(100, platform="douyin")).tags)
+    def test_boundaries(self):
+        cases = [(0, None), (19, None), (20, "评估中"), (49, "评估中"),
+                 (50, "爆贴"), (99, "爆贴"), (100, "大爆"), (9999, "大爆")]
+        for count, expected in cases:
+            heat = {t for t in self.decide(count).tags
+                    if self.settings.tags.rank(t) >= 0}
+            self.assertEqual(heat, {expected} if expected else set(), f"评论数 {count}")
 
-    def test_below_threshold_not_hot(self):
-        self.assertNotIn("爆文", self.decide(self._snap(49)).tags)
+    def test_tiers_are_mutually_exclusive(self):
+        """同时挂着评估中+爆贴+大爆没有意义，只能有一个。"""
+        for count in (25, 60, 500):
+            heat = [t for t in self.decide(count).tags if self.settings.tags.rank(t) >= 0]
+            self.assertEqual(len(heat), 1, f"评论数 {count} 得到 {heat}")
 
-    def test_sudden_spike_counts_as_hot_even_below_threshold(self):
-        v = self.decide(self._snap(45), previous_comment_count=20)
-        self.assertIn("爆文", v.tags)
+    def test_tier_upgrades_as_comments_grow(self):
+        v = self.decide(120, current_tags=["爆贴"])
+        self.assertIn("大爆", v.tags)
+        self.assertNotIn("爆贴", v.tags)
+
+    def test_tier_never_downgrades(self):
+        """评论被删导致数字掉下去，不该让一条帖子从大爆退回爆贴——
+        那是风控信号，该由风控标签表达。"""
+        v = self.decide(30, current_tags=["大爆"])
+        self.assertIn("大爆", v.tags)
+        self.assertNotIn("评估中", v.tags)
+        self.assertTrue(any("保留高档位" in n for n in v.notes))
+
+    def test_same_thresholds_for_both_platforms(self):
+        for platform in ("xhs", "douyin"):
+            v = analyze.decide(self._snap(60, platform), self.settings,
+                               previous_comment_count=None, age_hours=10)
+            self.assertIn("爆贴", v.tags, platform)
+
+    def test_human_tags_do_not_confuse_the_ratchet(self):
+        v = self.decide(60, current_tags=["已复盘", "客户确认"])
+        self.assertIn("爆贴", v.tags)
+
+
+class TestRiskDetection(unittest.TestCase):
+    def setUp(self):
+        self.settings = Settings()
+
+    def _snap(self, count):
+        return analyze.read_comment_page("xhs", {"items": [], "comment_count": count})
+
+    def decide(self, count, **kw):
+        kw.setdefault("previous_comment_count", None)
+        kw.setdefault("age_hours", 10)
+        return analyze.decide(self._snap(count), self.settings, **kw)
 
     def test_comment_halving_flags_risk(self):
-        self.assertIn("风控", self.decide(self._snap(20), previous_comment_count=100).tags)
-
-    def test_mild_drop_only_warns(self):
-        v = self.decide(self._snap(80), previous_comment_count=100)
-        self.assertIn("预警", v.tags)
-        self.assertNotIn("风控", v.tags)
+        self.assertIn("风控", self.decide(20, previous_comment_count=100).tags)
 
     def test_small_baseline_drop_is_noise(self):
-        v = self.decide(self._snap(2), previous_comment_count=8)
-        self.assertNotIn("风控", v.tags)
-        self.assertNotIn("预警", v.tags)
+        self.assertNotIn("风控", self.decide(2, previous_comment_count=8).tags)
 
     def test_zero_comments_after_window_flags_risk(self):
-        self.assertIn("风控", self.decide(self._snap(0), age_hours=72).tags)
+        self.assertIn("风控", self.decide(0, age_hours=72).tags)
 
     def test_zero_comments_during_cold_start_is_fine(self):
-        self.assertNotIn("风控", self.decide(self._snap(0), age_hours=3).tags)
+        self.assertNotIn("风控", self.decide(0, age_hours=3).tags)
 
-    def test_pinned_ok_tag(self):
-        v = self.decide(self._snap(10, pinned=True), expected_pinned="官方置顶文案在此")
-        self.assertIn("置顶成功", v.tags)
-
-    def test_lost_pin_warns(self):
-        v = self.decide(self._snap(10), expected_pinned="官方置顶文案在此")
-        self.assertIn("预警", v.tags)
-        self.assertNotIn("置顶成功", v.tags)
-
-    def test_previously_pinned_now_lost_is_called_out(self):
-        v = self.decide(self._snap(10), expected_pinned="官方置顶文案在此",
-                        previous_pinned_state=self.settings.pinned_states.success)
-        self.assertTrue(any("此前是成功状态" in n for n in v.notes))
+    def test_risk_is_volatile_and_clears_on_recovery(self):
+        """恢复正常要能自动摘掉，否则表会越来越红，最后没人看。"""
+        v = self.decide(80, previous_comment_count=75, current_tags=["风控"])
+        self.assertNotIn("风控", v.tags)
 
     def test_gone_tags_both_gone_and_risk(self):
         self.assertEqual(analyze.gone_verdict(self.settings).tags, {"已失效", "风控"})
 
     def test_first_strike_tags_nothing(self):
         """一次抖动就把好帖子标成风控 = 运营全线停投。绝不能发生。"""
-        v = analyze.suspect_verdict(self.settings, 1, "取不到")
-        self.assertEqual(v.tags, set())
+        self.assertEqual(analyze.suspect_verdict(self.settings, 1, "取不到").tags, set())
 
     def test_all_decided_tags_stay_inside_namespace(self):
         ns = set(self.settings.tags.namespace())
         for platform in ("xhs", "douyin"):
-            for count in (0, 5, 49, 50, 5000):
+            for count in (0, 19, 20, 50, 100, 5000):
                 for prev in (None, 0, 10, 500):
                     for age in (1, 50, 500):
-                        v = self.decide(self._snap(count, pinned=True, platform=platform),
-                                        previous_comment_count=prev, age_hours=age,
-                                        expected_pinned="官方置顶文案在此")
+                        snap = analyze.read_comment_page(platform, {
+                            "items": [{"content": "官方置顶文案在此", "is_pinned": True,
+                                       "is_author_comment": True, "like_count": 0,
+                                       "ip_location": "", "author": {"name": "官号"}}],
+                            "comment_count": count})
+                        v = analyze.decide(snap, self.settings, previous_comment_count=prev,
+                                           age_hours=age, expected_pinned="官方置顶文案在此")
                         self.assertTrue(v.tags <= ns, f"{v.tags} 越界")
+
+
+class TestPinnedLossIsCalledOut(unittest.TestCase):
+    def test_previously_pinned_now_lost(self):
+        settings = Settings()
+        snap = analyze.read_comment_page("xhs", {"items": [], "comment_count": 10})
+        v = analyze.decide(snap, settings, previous_comment_count=None, age_hours=10,
+                           expected_pinned="官方置顶文案在此",
+                           previous_comment_status=settings.pinned.success_value)
+        self.assertTrue(any("此前已确认置顶成功" in n for n in v.notes))
 
 
 class TestCallPlanning(unittest.TestCase):

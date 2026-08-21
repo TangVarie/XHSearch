@@ -48,7 +48,7 @@ class TestCozeBundle(unittest.TestCase):
     def test_core_symbols_present(self):
         for name in [
             "Settings", "Row", "parse", "plan_calls", "read_comment_page", "merge_detail",
-            "decide", "decide_pinned_state", "gone_verdict", "suspect_verdict",
+            "decide", "decide_pin", "Pin", "gone_verdict", "suspect_verdict",
             "merge", "format_digest", "format_pinned", "parse_response", "build_body",
             "headers", "endpoint", "Failure", "FATAL", "Err", "Ok", "main",
         ]:
@@ -70,18 +70,28 @@ class TestCozeBundle(unittest.TestCase):
         })
         verdict = ns["decide"](snapshot, settings, previous_comment_count=10,
                                age_hours=20, expected_pinned="戳主页领券")
-        self.assertIn("爆文", verdict.tags)
-        self.assertIn("置顶成功", verdict.tags)
-        self.assertEqual(verdict.pinned_state, settings.pinned_states.success)
+        self.assertIn("爆贴", verdict.tags)          # 88 条落在 50–99 档
+        self.assertNotIn("大爆", verdict.tags)       # 档位互斥
+        self.assertIs(verdict.pin, ns["Pin"].SUCCESS)
         self.assertIn("置顶", ns["format_digest"](snapshot, settings.digest))
+
+    def test_heat_tiers_match_the_agreed_thresholds(self):
+        """≥20 评估中，≥50 爆贴，≥100 大爆。改动阈值会静默改变全表结论，
+        所以在打包产物里也钉一遍。"""
+        ns = self.namespace
+        settings = ns["Settings"]()
+        for count, expected in [(19, None), (20, "评估中"), (50, "爆贴"), (100, "大爆")]:
+            snap = ns["read_comment_page"]("xhs", {"items": [], "comment_count": count})
+            verdict = ns["decide"](snap, settings, previous_comment_count=None, age_hours=10)
+            heat = {t for t in verdict.tags if settings.tags.rank(t) >= 0}
+            self.assertEqual(heat, {expected} if expected else set(), f"评论数 {count}")
 
     def test_tag_merge_works_inside_bundle(self):
         ns = self.namespace
         settings = ns["Settings"]()
-        merged = ns["merge"](["已复盘", "风控"], {"爆文"},
-                             settings.tags.namespace(), sticky=settings.tags.sticky())
+        merged = ns["merge"](["已复盘", "风控"], {"爆贴"}, settings.tags.namespace())
         self.assertIn("已复盘", merged.final)
-        self.assertIn("爆文", merged.final)
+        self.assertIn("爆贴", merged.final)
         self.assertNotIn("风控", merged.final)
 
     def test_protocol_parsing_works_inside_bundle(self):

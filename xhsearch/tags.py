@@ -39,7 +39,6 @@ def merge(
     computed: Iterable[str],
     machine_namespace: Iterable[str],
     known_options: Iterable[str] | None = None,
-    sticky: Iterable[str] | None = None,
 ) -> TagMerge:
     """把机器算出的标签并进现有标签，不碰人工标签。
 
@@ -56,17 +55,10 @@ def merge(
         该多选字段实际配置了哪些选项。给了就做过滤——飞书 batch_update 是
         全成功或全失败，一个字段里没有的选项名可能让整批几百行一起回滚，
         与其赌服务端会自动建选项，不如在这里挡掉并把它记进 dropped_unknown。
-    sticky:
-        粘性标签：一旦贴上就不自动摘除，即使本轮没算出来。用于「爆文」这类
-        记录历史事实的标签——评论数回落不代表它没爆过。
     """
     current_set = [t.strip() for t in (current or []) if t and t.strip()]
     machine = set(machine_namespace)
-    sticky_set = set(sticky or ()) & machine
     computed_set = {t for t in computed if t}
-
-    # 粘性标签：现值里已经有的，继承下来。
-    computed_set |= {t for t in current_set if t in sticky_set}
 
     unexpected = computed_set - machine
     if unexpected:

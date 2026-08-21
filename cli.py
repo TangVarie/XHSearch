@@ -82,11 +82,17 @@ def cmd_doctor() -> int:
                 f"没建的话机器会跳过它们（不会误写），但对应的判定就等于没生效。"
             )
 
-    pinned_options = table.list_field_options(f.pinned_state)
-    if pinned_options is not None:
-        missing = [s for s in settings.pinned_states.all() if s not in pinned_options]
+    status_options = table.list_field_options(f.comment_status)
+    if status_options is not None:
+        wanted = [settings.pinned.success_value]
+        if settings.pinned.overwrite_on_lost:
+            wanted.append(settings.pinned.lost_value)
+        missing = [v for v in wanted if v not in status_options]
         if missing:
-            problems.append(f"「{f.pinned_state}」缺这些选项：{'、'.join(missing)}")
+            problems.append(
+                f"「{f.comment_status}」缺这些选项：{'、'.join(missing)}。"
+                f"机器要往这一列写它们，没建就写不进去。"
+            )
 
     print("③ 试读一行 …", end=" ", flush=True)
     try:

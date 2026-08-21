@@ -15,11 +15,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Optional
 
 from .config import DigestFormat, Settings, Thresholds
 
-DOUYIN_PINNED_UNSUPPORTED = "—（抖音接口不返回置顶标记，无法判定）"
+DOUYIN_PINNED_UNSUPPORTED = "—（抖音不支持置顶监控）"
 
 
 @dataclass
@@ -199,56 +200,57 @@ def _looks_like_seed(comment: CommentView, expected: str) -> bool:
     return needle in haystack or (len(haystack) >= 8 and haystack in needle)
 
 
-def decide_pinned_state(
-    snapshot: Snapshot,
-    expected: str,
-    settings: Settings,
-) -> tuple[str, str]:
-    """判定置顶状态。返回（单选值, 写进诊断信息的补充说明）。
+class Pin(Enum):
+    """置顶判定结果。"""
+
+    UNSUPPORTED = "unsupported"   # 抖音：接口没有 is_pinned，判不了
+    NO_SEED = "no_seed"           # 没填种子关键词，无从比对
+    SUCCESS = "success"           # 置顶的就是我们那条
+    REPLACED = "replaced"         # 有置顶，但被换成了别人的
+    LOST = "lost"                 # 置顶没了，但我方评论还在首页
+    SEED_MISSING = "seed_missing"  # 首页找不到我方评论
+    NONE_PINNED = "none_pinned"   # 压根没有置顶评论
+
+
+def decide_pin(snapshot: Snapshot, expected: str) -> tuple[Pin, str]:
+    """判定置顶。返回（结果, 写进诊断信息的补充说明）。
 
     这里刻意不只回答「置顶成功了吗」。对品牌方来说最该立刻知道的那种情况是
     **置顶还在，但被换成了别人的评论**——只看「我们的置顶在不在」会完全错过这一幕。
     """
-    ps = settings.pinned_states
-
     if not snapshot.supports_pinned:
-        return ps.douyin_unsupported, "抖音评论接口不返回置顶标记，本行置顶状态无法判定"
+        return Pin.UNSUPPORTED, ""
 
     pinned = snapshot.pinned
     seeded = (expected or "").strip()
 
     if not seeded:
         if pinned is None:
-            return ps.none_pinned, ""
-        # 没配种子文案就无法区分「我们的」和「别人的」，只能如实说有置顶。
-        return ps.no_seed, "未填写种子评论关键词，只能确认存在置顶评论，无法确认是不是我方的"
-
-    if pinned is not None:
-        if _looks_like_seed(pinned, seeded):
-            return ps.success, ""
-        # 置顶在，但不是我们的。看看我们那条还在不在评论区里。
-        position = next(
-            (i for i, c in enumerate(snapshot.comments, start=1) if _looks_like_seed(c, seeded)),
-            None,
-        )
-        if position:
-            return ps.replaced, f"置顶位被他人占据，我方评论掉到第 {position} 条"
-        return ps.replaced, "置顶位被他人占据，且首页未找到我方评论"
+            return Pin.NONE_PINNED, ""
+        return Pin.NO_SEED, "未填写种子评论关键词，只能确认存在置顶评论，无法确认是不是我方的"
 
     position = next(
         (i for i, c in enumerate(snapshot.comments, start=1) if _looks_like_seed(c, seeded)),
         None,
     )
+
+    if pinned is not None:
+        if _looks_like_seed(pinned, seeded):
+            return Pin.SUCCESS, ""
+        if position:
+            return Pin.REPLACED, f"⚠ 置顶位被他人占据，我方评论掉到第 {position} 条"
+        return Pin.REPLACED, "⚠ 置顶位被他人占据，且首页未找到我方评论"
+
     if position:
-        return ps.lost, f"置顶已掉，我方评论现在排在第 {position} 条"
-    return ps.seed_missing, "首页未找到我方种子评论（可能已被删除，或不在第一页）"
+        return Pin.LOST, f"⚠ 置顶已掉，我方评论现在排在第 {position} 条"
+    return Pin.SEED_MISSING, "⚠ 首页未找到我方种子评论（可能已被删除，或不在第一页）"
 
 
 @dataclass
 class Verdict:
     tags: set[str] = field(default_factory=set)
     notes: list[str] = field(default_factory=list)
-    pinned_state: str = ""
+    pin: Pin = Pin.UNSUPPORTED
 
 
 def decide(
@@ -258,72 +260,72 @@ def decide(
     previous_comment_count: Optional[int],
     age_hours: Optional[float],
     expected_pinned: str = "",
-    previous_pinned_state: str = "",
+    current_tags: Optional[list[str]] = None,
+    previous_comment_status: str = "",
 ) -> Verdict:
-    """算出这一行本次应有的机器标签和置顶状态。
+    """算出这一行本次应有的机器标签和置顶判定。
 
     只产出 settings.tags.namespace() 里的标签。人工标签由 tags.merge 保护，
     这里完全不需要知道它们的存在。
     """
     t = settings.tags
-    ps = settings.pinned_states
     th: Thresholds = settings.thresholds
     verdict = Verdict()
 
     count = snapshot.comment_count
-    threshold = th.hot_threshold(snapshot.platform)
 
-    if count is not None and count >= threshold:
-        verdict.tags.add(t.hot)
-        verdict.notes.append(f"评论数 {count} ≥ 爆文阈值 {threshold}")
+    # —— 热度档位：互斥，取最高，且只升不降 ——
+    if count is not None:
+        tier = th.heat_tier(count, t)
+        # 棘轮：算上表里已有的档位取最高。评论被删导致数字掉下去，不该让
+        # 一条帖子从「大爆」退回「爆贴」——那是风控信号，由风控标签表达。
+        previous_best = max(
+            (tag for tag in (current_tags or []) if t.rank(tag) >= 0),
+            key=t.rank,
+            default=None,
+        )
+        best = max(
+            (x for x in (tier, previous_best) if x),
+            key=t.rank,
+            default=None,
+        )
+        if best:
+            verdict.tags.add(best)
+            if best == tier:
+                verdict.notes.append(f"评论数 {count} → {best}")
+            else:
+                verdict.notes.append(f"评论数 {count}，但曾达到「{best}」，保留高档位")
 
-    # 突然起飞：绝对增量够大且相对涨幅过半。抓「正在爆」而不只是「已经爆了」。
-    if count is not None and previous_comment_count is not None:
-        delta = count - previous_comment_count
-        if delta >= th.hot_delta and delta >= previous_comment_count * 0.5:
-            verdict.tags.add(t.hot)
-            verdict.notes.append(f"评论数单轮新增 {delta}（{previous_comment_count} → {count}）")
-
-    # 掉量。分两档：腰斩算风控，轻微下滑只算预警。
-    # 评论被平台悄悄批量删除，往往比笔记整个失效早得多，是限流的前兆。
+    # —— 掉量：评论被平台悄悄批量删除，往往比笔记整个失效早得多 ——
     if (
         count is not None
         and previous_comment_count is not None
         and previous_comment_count >= th.risk_drop_min_baseline
+        and count <= previous_comment_count * (1 - th.risk_drop_ratio)
     ):
-        drop = previous_comment_count - count
-        if count <= previous_comment_count * (1 - th.risk_drop_ratio):
-            verdict.tags.add(t.risk)
-            verdict.notes.append(
-                f"评论数从 {previous_comment_count} 掉到 {count}，"
-                f"跌幅超过 {int(th.risk_drop_ratio * 100)}%"
-            )
-        elif (
-            drop >= th.warn_drop_min_absolute
-            and count <= previous_comment_count * (1 - th.warn_drop_ratio)
-        ):
-            verdict.tags.add(t.warning)
-            verdict.notes.append(f"评论数减少 {drop} 条，疑似评论被删")
+        verdict.tags.add(t.risk)
+        verdict.notes.append(
+            f"⚠ 评论数从 {previous_comment_count} 掉到 {count}，"
+            f"跌幅超过 {int(th.risk_drop_ratio * 100)}%，疑似限流或删评"
+        )
 
     # 发出去够久了还是零评论，疑似限流。
     if count == 0 and age_hours is not None and age_hours >= th.risk_zero_comment_hours:
         verdict.tags.add(t.risk)
         verdict.notes.append(
-            f"发布 {age_hours:.0f} 小时仍为 0 评论（阈值 {th.risk_zero_comment_hours} 小时）"
+            f"⚠ 发布 {age_hours:.0f} 小时仍为 0 评论（阈值 {th.risk_zero_comment_hours} 小时）"
         )
 
-    state, note = decide_pinned_state(snapshot, expected_pinned, settings)
-    verdict.pinned_state = state
+    # —— 置顶 ——
+    verdict.pin, note = decide_pin(snapshot, expected_pinned)
     if note:
         verdict.notes.append(note)
-
-    if state == ps.success:
-        verdict.tags.add(t.pinned_ok)
-    elif state in (ps.replaced, ps.lost, ps.seed_missing):
-        verdict.tags.add(t.warning)
-        # 之前置顶成功过、现在掉了 —— 这是种草投放里最该被立刻发现的事之一。
-        if previous_pinned_state == ps.success:
-            verdict.notes.append("⚠ 置顶此前是成功状态，本轮已掉")
+    # 之前写过「置顶成功」、现在掉了 —— 这是种草投放里最该被立刻发现的事之一。
+    if (
+        previous_comment_status == settings.pinned.success_value
+        and verdict.pin in (Pin.REPLACED, Pin.LOST, Pin.SEED_MISSING)
+    ):
+        verdict.notes.append("⚠ 此前已确认置顶成功，本轮置顶已掉")
 
     return verdict
 

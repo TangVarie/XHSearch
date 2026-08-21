@@ -30,7 +30,7 @@ class FieldNames:
     like_count: str = "点赞数"
     collect_count: str = "收藏数"
     pinned_comment: str = "置顶评论"
-    pinned_state: str = "置顶状态"            # 单选，比一个布尔标签能说清楚得多
+    comment_status: str = "评论状态"          # 单选，人工维护；机器只在置顶成功时覆盖
     comment_digest: str = "评论区快照"
     traffic_status: str = "流量状态"          # 多选，人机共用
     refresh_status: str = "刷新状态"
@@ -52,7 +52,7 @@ class FieldNames:
             self.comment_count,           # 判定掉量必须知道上一次的数
             self.last_updated,            # 分层刷新靠它判断到期
             self.consecutive_failures,    # 两击定罪
-            self.pinned_state,            # 判断置顶是不是刚掉的
+            self.comment_status,          # 判断置顶是不是刚掉的
         ]
 
 
@@ -60,78 +60,86 @@ class FieldNames:
 class Tags:
     """机器管辖的标签。必须穷举——漏一个，那个标签就再也撤不回来。
 
-    分两类：
+    热度三档（评估中 / 爆贴 / 大爆）是**互斥**的：一条帖子同时挂着三个没有意义，
+    所以每轮只留最高的那一个。而且只升不降（棘轮）——爆过就是爆过，
+    评论被删导致数字掉下去不该让它从「大爆」退回「爆贴」，
+    那种情况该由 风控 标签来表达。
 
-    * 粘性（sticky）：记录「曾经发生过的事实」，只增不删。爆过就是爆过，
-      评论数回落不代表它没爆过，要摘由人工摘。
-    * 易变（volatile）：反映「当前状态」，每轮重算。恢复正常要能自动摘掉，
-      否则表会越来越红，最后没人看。
+    风控 / 已失效反映**当前状态**，每轮重算，恢复正常要能自动摘掉，
+    否则表会越来越红，最后没人看。
     """
 
-    hot: str = "爆文"
+    evaluating: str = "评估中"
+    hot: str = "爆贴"
+    super_hot: str = "大爆"
     risk: str = "风控"
-    warning: str = "预警"
-    pinned_ok: str = "置顶成功"
     gone: str = "已失效"
 
+    def heat_tiers(self) -> list[str]:
+        """热度档位，由低到高。互斥，同时只留一个。"""
+        return [self.evaluating, self.hot, self.super_hot]
+
     def namespace(self) -> list[str]:
-        return [self.hot, self.risk, self.warning, self.pinned_ok, self.gone]
+        return [*self.heat_tiers(), self.risk, self.gone]
 
-    def sticky(self) -> list[str]:
-        return [self.hot]
-
-    def volatile(self) -> list[str]:
-        return [self.risk, self.warning, self.pinned_ok, self.gone]
+    def rank(self, tag: str) -> int:
+        """热度档位的高低。不是热度标签返回 -1。"""
+        tiers = self.heat_tiers()
+        return tiers.index(tag) if tag in tiers else -1
 
 
 @dataclass
-class PinnedStates:
-    """置顶状态单选字段的取值。固定枚举，**绝不含变量**。
+class PinnedPolicy:
+    """置顶判定写回「评论状态」单选列的策略。
 
-    带变量的单选值（比如「置顶在第 3 条」）会让飞书静默新建选项，几周后这个
-    字段会长出几十个只差一个数字的选项，且只能人工清理。位次信息一律写进
-    诊断信息，不进单选值。
+    只有小红书能判置顶（抖音评论接口没有 is_pinned 字段）。
     """
 
-    unknown: str = "未刷新"
-    no_seed: str = "未配置种子"
-    success: str = "置顶成功"
-    replaced: str = "置顶被顶替"       # 有置顶，但不是我们那条 —— 品牌方最该立刻知道的一种
-    lost: str = "置顶丢失"             # 我们那条还在，但没被置顶
-    seed_missing: str = "未找到种子评论"
-    none_pinned: str = "无置顶评论"
-    douyin_unsupported: str = "抖音·不支持判定"
+    # 确认置顶成功时写进「评论状态」的值，覆盖原有内容。
+    success_value: str = "置顶成功"
 
-    def all(self) -> list[str]:
-        return [
-            self.unknown, self.no_seed, self.success, self.replaced,
-            self.lost, self.seed_missing, self.none_pinned, self.douyin_unsupported,
-        ]
+    # 置顶掉了 / 被别人顶替时，要不要也覆盖这一列。
+    #
+    # 默认 False（只在成功时写）。代价必须说清楚：一旦某轮写过「置顶成功」，
+    # 之后置顶掉了这一列**不会变**，表会在你最需要它说真话的时候撒谎。
+    # 掉置顶的事实这时只出现在「诊断信息」里。
+    #
+    # 设成 True 就会在掉置顶时覆盖成 lost_value，代价是会盖掉运营手填的值。
+    overwrite_on_lost: bool = False
+    lost_value: str = "置顶已掉"
 
 
 @dataclass
 class Thresholds:
-    """判定口径。**默认值是占位符，必须按你们自己的数据校准。**"""
+    """判定口径。
 
-    # 评论数达到多少算爆文。小红书和抖音的基线差一个量级。
-    hot_comment_count_xhs: int = 50
-    hot_comment_count_douyin: int = 200
-    # 单轮增量达到这个数且相对上次涨幅过半，也算爆（抓突然起飞的那一刻）
-    hot_delta: int = 20
+    热度三档互斥，取最高：
+        ≥ 20 → 评估中
+        ≥ 50 → 爆贴
+        ≥ 100 → 大爆
+    """
+
+    tier_evaluating: int = 20
+    tier_hot: int = 50
+    tier_super_hot: int = 100
 
     # 评论数相对上次下跌超过这个比例，判定疑似风控（限流/删评/折叠）。
     risk_drop_ratio: float = 0.5
     # 上次评论数低于这个值时不做掉量判定——从 3 掉到 1 没有意义。
     risk_drop_min_baseline: int = 20
-    # 轻微掉量（评论在被悄悄删）只打预警，不打风控。
-    warn_drop_ratio: float = 0.1
-    warn_drop_min_absolute: int = 5
 
     # 发布多久之后仍然零评论，判定疑似限流。太短会把正常冷启动误报成风控。
     risk_zero_comment_hours: int = 48
 
-    def hot_threshold(self, platform: str) -> int:
-        return self.hot_comment_count_douyin if platform == "douyin" else self.hot_comment_count_xhs
+    def heat_tier(self, count: int, tags: "Tags") -> str | None:
+        """按评论数算热度档位。返回 None 表示还够不上最低档。"""
+        if count >= self.tier_super_hot:
+            return tags.super_hot
+        if count >= self.tier_hot:
+            return tags.hot
+        if count >= self.tier_evaluating:
+            return tags.evaluating
+        return None
 
 
 @dataclass
@@ -192,7 +200,7 @@ class Safety:
 class Settings:
     fields: FieldNames = field(default_factory=FieldNames)
     tags: Tags = field(default_factory=Tags)
-    pinned_states: PinnedStates = field(default_factory=PinnedStates)
+    pinned: PinnedPolicy = field(default_factory=PinnedPolicy)
     thresholds: Thresholds = field(default_factory=Thresholds)
     digest: DigestFormat = field(default_factory=DigestFormat)
     refresh: RefreshTiers = field(default_factory=RefreshTiers)

@@ -199,7 +199,7 @@ async def main(args: Any) -> dict:
             previous_comment_count=_cell_int(cells.get(f.comment_count)),
             last_updated_ms=_cell_ms(cells.get(f.last_updated)),
             consecutive_failures=_cell_int(cells.get(f.consecutive_failures)) or 0,
-            pinned_state=_cell_text(cells.get(f.pinned_state)),
+            comment_status=_cell_text(cells.get(f.comment_status)),
             queued=bool(cells.get(f.queued)),
         )
         if wanted or row.queued or row.is_due(settings, now):
@@ -295,7 +295,8 @@ async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
                      previous_comment_count=row.previous_comment_count,
                      age_hours=row.age_hours(now),
                      expected_pinned=row.expected_pinned,
-                     previous_pinned_state=row.pinned_state)
+                     current_tags=row.current_tags,
+                     previous_comment_status=row.comment_status)
     fields = _render(row, verdict, snapshot, settings, now, "正常")
     fields[f.consecutive_failures] = 0
     return (fields, credits, balance, False)
@@ -315,12 +316,15 @@ def _render(row, verdict, snapshot, settings, now, status, touch_tags=True):
     f = settings.fields
     fields = _base_fields(settings, status, verdict.notes, now)
     if touch_tags:
-        merged = merge(row.current_tags, verdict.tags, settings.tags.namespace(),
-                       sticky=settings.tags.sticky())
+        merged = merge(row.current_tags, verdict.tags, settings.tags.namespace())
         if merged.changed:
             fields[f.traffic_status] = merged.final
-    if verdict.pinned_state:
-        fields[f.pinned_state] = verdict.pinned_state
+    if verdict.pin is Pin.SUCCESS:
+        fields[f.comment_status] = settings.pinned.success_value
+    elif settings.pinned.overwrite_on_lost and verdict.pin in (
+        Pin.REPLACED, Pin.LOST, Pin.SEED_MISSING
+    ):
+        fields[f.comment_status] = settings.pinned.lost_value
     if row.parsed.platform:
         fields[f.platform] = "小红书" if row.parsed.platform == "xhs" else "抖音"
     if snapshot is not None:

@@ -38,7 +38,7 @@ class Row:
     previous_comment_count: Optional[int] = None
     last_updated_ms: Optional[int] = None
     consecutive_failures: int = 0
-    pinned_state: str = ""
+    comment_status: str = ""
     queued: bool = False
 
     _parsed: Optional[ParsedLink] = field(default=None, repr=False, compare=False)
