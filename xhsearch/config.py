@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
 
@@ -187,15 +186,6 @@ class Safety:
     # 同一行在这个时间窗内刚成功刷过就跳过，不花积分。
     # 有人连点 200 次按钮 = 1 次真实调用。
     cooldown_seconds: int = 90
-
-
-# 上游把内容判死的话术。这是**配置数据不是代码**——厂商没有公开错误码表，
-# 这张表得我们自己在生产里一点点攒。加一条不需要改代码逻辑。
-GONE_PATTERNS = re.compile(
-    r"不存在|已删除|已失效|无法访问|不可见|已下架|违规|审核不通过|"
-    r"私密|仅.{0,4}可见|作品.{0,6}不存在|笔记.{0,6}不存在|状态异常|"
-    r"not.?found|deleted|unavailable"
-)
 
 
 @dataclass

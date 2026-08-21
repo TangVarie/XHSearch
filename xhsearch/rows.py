@@ -23,10 +23,9 @@ from .links import ParsedLink, parse
 
 @dataclass
 class ToolCall:
-    platform: str
-    tool: str
+    platform: str            # "xhs" | "douyin"
+    purpose: str             # "comments" | "detail"
     arguments: dict[str, Any]
-    purpose: str  # "comments" | "detail"
 
 
 @dataclass
@@ -92,18 +91,11 @@ class Row:
         return (now - updated).total_seconds() / 3600 >= interval
 
 
-_XHS_COMMENTS_BY_ID = "xhs_get_note_comments_by_note_id"
-_XHS_COMMENTS_BY_URL = "xhs_get_note_comments_by_note_url"
-_XHS_DETAIL_BY_ID = "xhs_get_note_detail_by_note_id"
-_XHS_DETAIL_BY_URL = "xhs_get_note_detail_by_note_url"
-_DY_COMMENTS_BY_ID = "douyin_get_video_comments_by_aweme_id"
-_DY_COMMENTS_BY_URL = "douyin_get_video_comments_by_url"
-_DY_DETAIL_BY_ID = "douyin_get_video_detail_by_aweme_id"
-_DY_DETAIL_BY_URL = "douyin_get_video_detail_by_url"
-
-
 def plan_calls(row: Row, settings: Settings, now: Optional[datetime] = None) -> list[ToolCall]:
-    """算出这一行需要发哪些请求。空列表 = 链接不可用，不该花钱。"""
+    """算出这一行需要发哪些请求。空列表 = 链接不可用，不该花钱。
+
+    优先用 ID 而不是 URL：小红书分享链接带 `xsec_token`，会过期；ID 不会。
+    """
     link = row.parsed
     if not link.usable:
         return []
@@ -112,40 +104,24 @@ def plan_calls(row: Row, settings: Settings, now: Optional[datetime] = None) -> 
     age_days = row.age_days(now)
 
     if link.platform == "xhs":
-        if link.content_id:
-            calls.append(
-                ToolCall(
-                    "xhs",
-                    _XHS_COMMENTS_BY_ID,
-                    # sort_type=default 是唯一正确的选择：它对应 App 里默认看到的
-                    # 综合排序，也是置顶评论最可能出现在第一页的排序。
-                    # 换成 time_descending 会把老的置顶评论压到最后。
-                    {"note_id": link.content_id, "sort_type": "default"},
-                    "comments",
-                )
-            )
-        else:
-            calls.append(
-                ToolCall("xhs", _XHS_COMMENTS_BY_URL, {"note_url": link.url, "sort_type": "default"}, "comments")
-            )
+        target = {"note_id": link.content_id} if link.content_id else {"note_url": link.url}
+        # sort_type=default 是唯一正确的选择：它对应 App 里默认看到的综合排序，
+        # 也是置顶评论最可能出现在第一页的排序。换成 time_descending
+        # 会把老的置顶评论压到最后。
+        calls.append(ToolCall("xhs", "comments", {**target, "sort_type": "default"}))
 
         want_detail = settings.detail_within_days > 0 and (
             age_days is None or age_days <= settings.detail_within_days
         )
         if want_detail:
-            if link.content_id:
-                calls.append(ToolCall("xhs", _XHS_DETAIL_BY_ID, {"note_id": link.content_id}, "detail"))
-            else:
-                calls.append(ToolCall("xhs", _XHS_DETAIL_BY_URL, {"note_url": link.url}, "detail"))
+            calls.append(ToolCall("xhs", "detail", dict(target)))
 
     elif link.platform == "douyin":
-        if link.content_id:
-            calls.append(ToolCall("douyin", _DY_COMMENTS_BY_ID, {"aweme_id": link.content_id}, "comments"))
-            # 恒定追加：抖音评论接口的 comment_count 可能为 null。
-            calls.append(ToolCall("douyin", _DY_DETAIL_BY_ID, {"aweme_id": link.content_id}, "detail"))
-        else:
-            calls.append(ToolCall("douyin", _DY_COMMENTS_BY_URL, {"url": link.url}, "comments"))
-            calls.append(ToolCall("douyin", _DY_DETAIL_BY_URL, {"url": link.url}, "detail"))
+        target = {"aweme_id": link.content_id} if link.content_id else {"url": link.url}
+        calls.append(ToolCall("douyin", "comments", dict(target)))
+        # 恒定追加：抖音评论接口的 comment_count 类型是 integer|null，
+        # 不兜底的话「评论数」这列会间歇性变空，比没有更糟。
+        calls.append(ToolCall("douyin", "detail", dict(target)))
 
     return calls
 

@@ -80,16 +80,18 @@ class _Abort(Exception):
 
 def _call(api_key: str, call: ToolCall, *, deadline: Optional[float], timeout: float) -> protocol.Result:
     response = transport.post_with_retry(
-        protocol.endpoint(call.platform),
+        protocol.endpoint(call.platform, call.purpose),
         protocol.headers(api_key),
-        protocol.build_call(call.tool, call.arguments),
+        protocol.build_body(call.arguments),
         timeout=timeout,
         deadline=deadline,
-        # 传输层只按 HTTP 状态判重试；业务级的限流判断在下面按解析结果做，
-        # 因为限流可能以 200 + 错误体的形式回来。
+        # 传输层只按 HTTP 状态判重试。业务错误走的是 HTTP 200 + body 里的 code，
+        # 传输层看不见，必须由下面按解析结果处理。
         should_retry=lambda r: r.status == 0 or r.status >= 500,
     )
-    return protocol.parse_response(response.status, response.content_type, response.body)
+    return protocol.parse_response(
+        response.status, response.content_type, response.body, response.request_id
+    )
 
 
 def _fetch_one(
@@ -255,11 +257,13 @@ def refresh(
         # —— 取不到内容：两击定罪 ——
         if snapshot is None and error is not None and error.kind is protocol.Failure.GONE:
             strikes = (row.consecutive_failures or 0) + 1
-            if strikes >= settings.safety.strikes_before_gone:
-                verdict = analyze.gone_verdict(settings, error.message)
+            # 上游给出权威结论时（错误码 1008「内容已删除」，规范明写「不要重试」）
+            # 不必等第二次——它已经确定了，再等一轮只是让运营晚一天看到。
+            if error.definitive or strikes >= settings.safety.strikes_before_gone:
+                verdict = analyze.gone_verdict(settings, error.operator_text())
                 outcome = finish(row, verdict, None, status=STATUS_GONE, credits=credits)
             else:
-                verdict = analyze.suspect_verdict(settings, strikes, error.message)
+                verdict = analyze.suspect_verdict(settings, strikes, error.operator_text())
                 outcome = finish(row, verdict, None, status=STATUS_SUSPECT,
                                  credits=credits, touch_tags=False)
             outcome.fields[f.consecutive_failures] = strikes
@@ -267,7 +271,7 @@ def refresh(
 
         # —— 取不到内容且不是「确认不存在」：只记，绝不打标签 ——
         if snapshot is None:
-            reason = str(error) if error else "没有拿到任何数据"
+            reason = error.operator_text() if error else "没有拿到任何数据"
             outcome = Outcome(
                 row.record_id,
                 STATUS_FAILED,
@@ -287,7 +291,7 @@ def refresh(
             previous_pinned_state=row.pinned_state,
         )
         if error is not None:
-            verdict.notes.append(f"（detail 未取到：{error.message[:80]}）")
+            verdict.notes.append(f"（detail 未取到：{error.operator_text()[:120]}）")
         if snapshot.points_balance is not None:
             report.points_balance = snapshot.points_balance
 

@@ -404,106 +404,133 @@ class TestRefreshTiering(unittest.TestCase):
 
 
 class TestProtocol(unittest.TestCase):
-    def test_missing_api_key_is_fatal_auth(self):
-        body = json.dumps({"error": "missing_api_key", "error_description": "未配置 API Key。"})
-        result = protocol.parse_response(401, "application/json", body)
-        self.assertIsInstance(result, protocol.Err)
+    """错误码取自 SocialDataX 公开 OpenAPI 规范的 x-socialdatax-error-contract。
+
+    最关键的一条协议特性：**业务错误也返回 HTTP 200**，靠 body 里有没有 `code`
+    字段来区分。只看 HTTP 状态码，会把每一个「笔记已删除」当成成功。
+    """
+
+    def rest(self, status, payload, request_id="req-123"):
+        return protocol.parse_response(status, "application/json",
+                                       json.dumps(payload), request_id)
+
+    # —— 这两条是实地验证过的真实响应 ——
+
+    def test_missing_api_key(self):
+        result = self.rest(401, {"code": 1401,
+                                 "message": "API Key 缺失，请通过 Authorization 或 X-API-Key 传入。"})
         self.assertEqual(result.kind, protocol.Failure.AUTH)
         self.assertIn(result.kind, protocol.FATAL)
 
     def test_invalid_api_key(self):
-        body = json.dumps({"error": "invalid_api_key", "error_description": "API Key 无效或已失效。"})
-        self.assertEqual(protocol.parse_response(401, "application/json", body).kind, protocol.Failure.AUTH)
+        result = self.rest(401, {"code": 1401, "message": "API Key 无效或已失效。"})
+        self.assertEqual(result.kind, protocol.Failure.AUTH)
 
-    def test_406_when_accept_header_wrong(self):
-        body = json.dumps({"jsonrpc": "2.0", "id": "server-error",
-                           "error": {"code": -32600, "message": "Not Acceptable: Client must accept both"}})
-        result = protocol.parse_response(406, "application/json", body)
+    # —— HTTP 200 + code 的业务错误，全部来自官方错误码表 ——
+
+    def test_business_error_on_http_200_is_not_success(self):
+        """整个协议层最容易写错的一处。"""
+        result = self.rest(200, {"code": 1008, "message": "当前作品已删除。"})
         self.assertIsInstance(result, protocol.Err)
 
-    def test_sse_structured_content(self):
-        payload = {"jsonrpc": "2.0", "id": 1,
-                   "result": {"structuredContent": {"comment_count": 42, "items": [],
-                                                    "points": {"cost": 10, "balance": 990}}}}
-        body = f"event: message\ndata: {json.dumps(payload)}\n\n"
-        result = protocol.parse_response(200, "text/event-stream", body)
+    def test_1003_not_found_is_gone_but_not_definitive(self):
+        result = self.rest(200, {"code": 1003, "message": "未找到对应内容"})
+        self.assertEqual(result.kind, protocol.Failure.GONE)
+        self.assertFalse(result.definitive)      # 走两击定罪
+
+    def test_1006_content_unavailable_is_the_fengkong_case(self):
+        # 规范原文：「目标内容存在但当前无法读取，例如权限、状态或平台限制导致不可访问」
+        result = self.rest(200, {"code": 1006, "message": "当前内容暂时不可用"})
+        self.assertEqual(result.kind, protocol.Failure.GONE)
+        self.assertFalse(result.definitive)
+
+    def test_1008_content_deleted_is_definitive(self):
+        # 规范原文：「作为业务失败处理，不要重试」→ 不必等第二击
+        result = self.rest(200, {"code": 1008, "message": "当前作品已删除。"})
+        self.assertEqual(result.kind, protocol.Failure.GONE)
+        self.assertTrue(result.definitive)
+
+    def test_1007_surface_unavailable_is_transient_not_gone(self):
+        """页面暂时打不开 ≠ 内容没了。判错这条会把好帖子标成失效。"""
+        result = self.rest(200, {"code": 1007, "message": "当前页面暂时不可访问"})
+        self.assertEqual(result.kind, protocol.Failure.TRANSPORT)
+        self.assertIn(result.kind, protocol.RETRYABLE)
+
+    def test_1005_service_failure_is_transient(self):
+        self.assertEqual(self.rest(200, {"code": 1005, "message": "服务暂时不可用，请稍后重试"}).kind,
+                         protocol.Failure.TRANSPORT)
+
+    def test_1004_insufficient_balance_is_fatal(self):
+        result = self.rest(200, {"code": 1004, "message": "当前 API Key 积分不足。"})
+        self.assertEqual(result.kind, protocol.Failure.QUOTA)
+        self.assertIn(result.kind, protocol.FATAL)
+
+    def test_1429_rate_limit_carries_retry_after(self):
+        result = protocol.parse_response(429, "application/json", json.dumps(
+            {"code": 1429, "message": "请求过于频繁，请稍后重试。",
+             "retry_after_seconds": 7, "rate_limit_window_seconds": 60}))
+        self.assertEqual(result.kind, protocol.Failure.RATE_LIMIT)
+        self.assertNotIn(result.kind, protocol.FATAL)
+        self.assertEqual(result.retry_after_seconds, 7.0)   # 字段名来自规范，不是猜的
+
+    def test_1001_invalid_argument_is_not_gone(self):
+        """参数错 ≠ 内容没了。混淆会把一个录入错误标成风控。"""
+        result = self.rest(200, {"code": 1001, "message": "参数不正确，请检查后重试"})
+        self.assertEqual(result.kind, protocol.Failure.UNKNOWN)
+        self.assertNotEqual(result.kind, protocol.Failure.GONE)
+
+    # —— 成功与兜底 ——
+
+    def test_success_has_no_code_field(self):
+        result = self.rest(200, {"comment_count": 42, "items": [],
+                                 "points": {"cost": 10, "balance": 990}})
         self.assertIsInstance(result, protocol.Ok)
         self.assertEqual(result.data["comment_count"], 42)
         self.assertEqual(result.points_balance, 990)
+        self.assertEqual(result.points_cost, 10)
 
-    def test_sse_content_text_fallback(self):
-        inner = json.dumps({"comment_count": 7, "items": []})
-        payload = {"jsonrpc": "2.0", "id": 1,
-                   "result": {"content": [{"type": "text", "text": inner}]}}
-        body = f"event: message\ndata: {json.dumps(payload)}\n\n"
-        result = protocol.parse_response(200, "text/event-stream", body)
-        self.assertIsInstance(result, protocol.Ok)
-        self.assertEqual(result.data["comment_count"], 7)
+    def test_request_id_is_carried_through(self):
+        """找厂商排查问题时唯一的凭据。"""
+        self.assertEqual(self.rest(200, {"code": 1003, "message": "未找到"}, "abc123").request_id, "abc123")
+        self.assertIn("abc123", str(self.rest(200, {"code": 1003, "message": "未找到"}, "abc123")))
 
-    def test_multiline_sse_frame(self):
-        # 按 SSE 规范，一帧的多行 data: 要用换行拼回去再解析。
-        # JSON 里的换行在结构位置上是合法空白，所以拼接后仍应解析成功。
-        payload = {"jsonrpc": "2.0", "id": 1, "result": {"structuredContent": {"ok": True}}}
-        raw = json.dumps(payload)
-        split_at = raw.index('"result"')
-        body = f"event: message\ndata: {raw[:split_at]}\ndata: {raw[split_at:]}\n\n"
-        result = protocol.parse_response(200, "text/event-stream", body)
-        self.assertIsInstance(result, protocol.Ok)
-        self.assertEqual(result.data, {"ok": True})
-
-    def test_ignores_non_data_sse_lines(self):
-        payload = {"jsonrpc": "2.0", "id": 1, "result": {"structuredContent": {"ok": True}}}
-        body = (
-            ": this is an SSE comment\n"
-            "event: message\n"
-            "id: 42\n"
-            "retry: 1000\n"
-            f"data: {json.dumps(payload)}\n"
-            "\n"
-        )
-        self.assertIsInstance(protocol.parse_response(200, "text/event-stream", body), protocol.Ok)
-
-    def test_rate_limit_is_retryable_not_fatal(self):
-        body = json.dumps({"error": "rate_limited", "error_description": "请求过于频繁", "retry_after": 3})
-        result = protocol.parse_response(429, "application/json", body)
-        self.assertEqual(result.kind, protocol.Failure.RATE_LIMIT)
-        self.assertIn(result.kind, protocol.RETRYABLE)
-        self.assertNotIn(result.kind, protocol.FATAL)
-        self.assertEqual(result.retry_after_seconds, 3.0)
-
-    def test_quota_is_fatal(self):
-        body = json.dumps({"error": "insufficient_balance", "error_description": "积分不足"})
-        self.assertIn(protocol.parse_response(402, "application/json", body).kind, protocol.FATAL)
-
-    def test_deleted_note_classified_as_gone(self):
-        body = json.dumps({"error": "not_found", "error_description": "笔记不存在或已删除"})
-        self.assertEqual(protocol.parse_response(404, "application/json", body).kind, protocol.Failure.GONE)
-
-    def test_unknown_chinese_message_falls_back_to_hint_matching(self):
-        body = json.dumps({"error": "weird_code", "error_description": "该内容因违规已下架"})
-        self.assertEqual(protocol.parse_response(200, "application/json", body).kind, protocol.Failure.GONE)
+    def test_unknown_code_falls_back_to_message_hints(self):
+        result = self.rest(200, {"code": 9999, "message": "该内容因违规已下架"})
+        self.assertEqual(result.kind, protocol.Failure.GONE)
 
     def test_server_error_is_transport_retryable(self):
-        result = protocol.parse_response(503, "text/html", "<html>bad gateway</html>")
-        self.assertEqual(result.kind, protocol.Failure.TRANSPORT)
+        self.assertEqual(protocol.parse_response(503, "text/html", "<html>bad gateway</html>").kind,
+                         protocol.Failure.TRANSPORT)
 
-    def test_tool_is_error_flag(self):
+    def test_unparseable_body(self):
+        self.assertIsInstance(protocol.parse_response(200, "application/json", "not json"), protocol.Err)
+
+    # —— 请求组装 ——
+
+    def test_endpoints(self):
+        self.assertTrue(protocol.endpoint("xhs", "comments").endswith("/xhs/note/comment/list"))
+        self.assertTrue(protocol.endpoint("douyin", "detail").endswith("/douyin/video/detail"))
+        with self.assertRaises(ValueError):
+            protocol.endpoint("weibo", "comments")
+
+    def test_only_one_auth_header(self):
+        """规范明确：Authorization 和 X-API-Key 只能用一种，同时传会被判配置冲突。"""
+        sent = protocol.headers("k")
+        self.assertIn("Authorization", sent)
+        self.assertNotIn("X-API-Key", sent)
+
+    def test_body_is_plain_json_not_jsonrpc(self):
+        body = json.loads(protocol.build_body({"note_id": "a" * 24, "sort_type": "default"}))
+        self.assertEqual(body, {"note_id": "a" * 24, "sort_type": "default"})
+
+    def test_sse_fallback_still_works(self):
+        """REST 不返回 SSE，但 MCP 端点会——留着这条防御分支不亏。"""
         payload = {"jsonrpc": "2.0", "id": 1,
-                   "result": {"isError": True,
-                              "content": [{"type": "text", "text": "笔记不存在"}]}}
-        body = f"event: message\ndata: {json.dumps(payload)}\n\n"
-        self.assertEqual(protocol.parse_response(200, "text/event-stream", body).kind, protocol.Failure.GONE)
-
-    def test_accept_header_includes_both_types(self):
-        # 少任何一个服务端都会 406，这是实测过的
-        accept = protocol.headers("k")["Accept"]
-        self.assertIn("application/json", accept)
-        self.assertIn("text/event-stream", accept)
-
-    def test_build_call_shape(self):
-        body = json.loads(protocol.build_call("xhs_get_note_comments_by_note_id", {"note_id": "a" * 24}))
-        self.assertEqual(body["method"], "tools/call")
-        self.assertEqual(body["params"]["name"], "xhs_get_note_comments_by_note_id")
+                   "result": {"structuredContent": {"comment_count": 7, "items": []}}}
+        result = protocol.parse_response(200, "text/event-stream",
+                                         f"event: message\ndata: {json.dumps(payload)}\n\n")
+        self.assertIsInstance(result, protocol.Ok)
+        self.assertEqual(result.data["comment_count"], 7)
 
 
 if __name__ == "__main__":

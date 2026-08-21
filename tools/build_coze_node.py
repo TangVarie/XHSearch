@@ -124,31 +124,32 @@ async def feishu_batch_update(token, app_token, table_id, updates):
 
 
 async def sdx_call(api_key: str, call: ToolCall, semaphore, deadline: float):
-    """打一次 SocialDataX。
+    """打一次 SocialDataX REST 接口。
 
-    两件必须做对的事：
-    1. Accept 必须同时含 application/json 和 text/event-stream，否则硬报 406
-    2. 成功走 SSE 分帧，失败走纯 JSON —— 同一接口两种 content-type，都要能解
+    ⚠️ 业务错误也返回 HTTP 200，靠 body 里的 `code` 字段区分。
+    只看 status_code 的写法会把每一个「笔记已删除」当成成功。
     """
     async with semaphore:
         if time.monotonic() >= deadline:
             return Err(Failure.TRANSPORT, "deadline", "已到软截止，留给下一轮")
         try:
             response = await requests.post(
-                endpoint(call.platform),
+                endpoint(call.platform, call.purpose),
                 headers=headers(api_key),
-                data=build_call(call.tool, call.arguments).encode("utf-8"),
+                data=build_body(call.arguments).encode("utf-8"),
                 timeout=25.0,
             )
         except Exception as exc:                       # noqa: BLE001
             return Err(Failure.TRANSPORT, "network", f"{type(exc).__name__}: {exc}")
 
-        content_type = ""
+        content_type, request_id = "", ""
         try:
             content_type = response.headers.get("content-type", "") or ""
+            request_id = response.headers.get("x-request-id", "") or ""
         except Exception:                              # noqa: BLE001
             pass
-        return parse_response(getattr(response, "status_code", 0), content_type, response.text)
+        return parse_response(getattr(response, "status_code", 0), content_type,
+                              response.text, request_id)
 
 
 # =============================================================================
@@ -273,9 +274,10 @@ async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
 
     if snapshot is None and error is not None and error.kind is Failure.GONE:
         strikes = (row.consecutive_failures or 0) + 1
-        convicted = strikes >= settings.safety.strikes_before_gone
-        verdict = gone_verdict(settings, error.message) if convicted \\
-            else suspect_verdict(settings, strikes, error.message)
+        # 错误码 1008「内容已删除」是权威结论，规范明写不要重试 —— 直接定罪。
+        convicted = error.definitive or strikes >= settings.safety.strikes_before_gone
+        verdict = gone_verdict(settings, error.operator_text()) if convicted \\
+            else suspect_verdict(settings, strikes, error.operator_text())
         # 第一击不碰流量状态：这一轮没获得关于这篇笔记的任何新信息，
         # 摘掉上一轮的标签等于用一次失败抹掉真实结论。
         fields = _render(row, verdict, None, settings, now,
@@ -284,7 +286,7 @@ async def _process(row, api_key, settings, now, semaphore, deadline, *, wanted):
         return (fields, credits, balance, convicted)
 
     if snapshot is None:
-        reason = str(error) if error else "没有拿到任何数据"
+        reason = error.operator_text() if error else "没有拿到任何数据"
         fields = _base_fields(settings, "刷新失败", [reason], now)
         fields[f.consecutive_failures] = (row.consecutive_failures or 0) + 1
         return (fields, credits, balance, False)

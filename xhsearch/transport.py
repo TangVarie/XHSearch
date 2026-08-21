@@ -23,6 +23,8 @@ class Response:
     status: int
     content_type: str
     body: str
+    # 找厂商排查问题时唯一的凭据，每次都要记进日志。
+    request_id: str = ""
 
     @property
     def ok(self) -> bool:
@@ -83,6 +85,7 @@ def _read(resp: Any) -> Response:
         status=getattr(resp, "status", None) or getattr(resp, "code", 0),
         content_type=resp.headers.get("Content-Type", ""),
         body=raw.decode(charset, errors="replace"),
+        request_id=resp.headers.get("x-request-id", "") or "",
     )
 
 

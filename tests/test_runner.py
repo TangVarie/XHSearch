@@ -17,13 +17,17 @@ NOW = datetime(2026, 8, 21, 12, 0, tzinfo=UTC)
 
 
 def sse(payload: dict) -> transport.Response:
-    frame = {"jsonrpc": "2.0", "id": 1, "result": {"structuredContent": payload}}
-    return transport.Response(200, "text/event-stream", f"event: message\ndata: {json.dumps(frame)}\n\n")
+    """成功响应。REST 接口返回纯 JSON，成功时不带 code 字段。
+
+    （函数名沿用 sse 只是历史习惯，实际是普通 JSON。）
+    """
+    return transport.Response(200, "application/json", json.dumps(payload), "req-ok")
 
 
-def err(status: int, code: str, message: str) -> transport.Response:
+def err(status: int, code: int, message: str, **extra) -> transport.Response:
+    """错误响应。注意业务错误的 HTTP 状态码是 200，靠 body 里的 code 区分。"""
     return transport.Response(
-        status, "application/json", json.dumps({"error": code, "error_description": message})
+        status, "application/json", json.dumps({"code": code, "message": message, **extra}), "req-err"
     )
 
 
@@ -62,7 +66,7 @@ class RunnerTest(unittest.TestCase):
             side_effect = responses
         else:
             queue = list(responses)
-            side_effect = lambda *a, **k: queue.pop(0) if queue else err(500, "x", "响应用完了")
+            side_effect = lambda *a, **k: queue.pop(0) if queue else err(500, 1005, "测试响应队列已耗尽")
         # 退避是真的会 sleep，测试里一律掐掉，否则重试用例会让整套跑十几秒。
         with mock.patch.object(transport, "post", side_effect=side_effect), \
              mock.patch("time.sleep"):
@@ -141,7 +145,7 @@ class TestHumanTagsAreNeverClobbered(RunnerTest):
 class TestDeadPostDetection(RunnerTest):
     def test_first_strike_does_not_convict(self):
         """两击定罪。一次抖动/一次上游话术变化就判死，会把整张表刷红。"""
-        report = self.run_with([err(404, "not_found", "笔记不存在或已删除")], [xhs_row(tags=["已复盘"])])
+        report = self.run_with([err(200, 1003, "未找到对应内容")], [xhs_row(tags=["已复盘"])])
         outcome = report.outcomes[0]
         self.assertEqual(outcome.status, runner.STATUS_SUSPECT)
         self.assertNotIn(self.settings.fields.traffic_status, outcome.fields)  # 一个标签都不打
@@ -150,21 +154,42 @@ class TestDeadPostDetection(RunnerTest):
 
     def test_first_strike_does_not_strip_existing_risk_tag(self):
         """上一轮判过风控，这一轮取不到 —— 不能因此把风控摘掉。"""
-        report = self.run_with([err(404, "not_found", "笔记不存在")],
+        report = self.run_with([err(200, 1003, "未找到对应内容")],
                                [xhs_row(tags=["风控", "已复盘"])])
         self.assertNotIn(self.settings.fields.traffic_status, report.outcomes[0].fields)
 
     def test_second_strike_convicts(self):
         row = xhs_row(tags=["已复盘"])
         row.consecutive_failures = 1
-        report = self.run_with([err(404, "not_found", "笔记不存在或已删除")], [row])
+        report = self.run_with([err(200, 1003, "未找到对应内容")], [row])
         outcome = report.outcomes[0]
         self.assertEqual(outcome.status, runner.STATUS_GONE)
         final = outcome.fields[self.settings.fields.traffic_status]
         self.assertIn("已失效", final)
         self.assertIn("风控", final)
         self.assertIn("已复盘", final)     # 人工标签照样保住
-        self.assertIn("已删除", outcome.fields[self.settings.fields.failure_reason])
+        self.assertIn("未找到对应内容", outcome.fields[self.settings.fields.failure_reason])
+
+    def test_content_deleted_convicts_on_first_strike(self):
+        """错误码 1008 是上游的权威结论（规范原文「不要重试」）——
+        再等一轮只是让运营晚一天看到，没有任何收益。"""
+        report = self.run_with([err(200, 1008, "当前作品已删除。")], [xhs_row()])
+        outcome = report.outcomes[0]
+        self.assertEqual(outcome.status, runner.STATUS_GONE)
+        self.assertIn("已失效", outcome.fields[self.settings.fields.traffic_status])
+
+    def test_surface_unavailable_is_not_treated_as_dead(self):
+        """1007「页面暂时不可访问」是瞬时故障，不是内容没了。
+        判错这条会把好帖子标成失效。"""
+        report = self.run_with([err(200, 1007, "当前页面暂时不可访问")] * 3, [xhs_row()])
+        outcome = report.outcomes[0]
+        self.assertEqual(outcome.status, runner.STATUS_FAILED)
+        self.assertNotIn(self.settings.fields.traffic_status, outcome.fields)
+
+    def test_request_id_is_written_into_the_table(self):
+        """找厂商排查时唯一的凭据，运营截图就能给出去。"""
+        report = self.run_with([err(200, 1003, "未找到对应内容")], [xhs_row()])
+        self.assertIn("req-err", report.outcomes[0].fields[self.settings.fields.failure_reason])
 
     def test_success_resets_the_strike_counter(self):
         row = xhs_row()
@@ -184,7 +209,7 @@ class TestCircuitBreaker(RunnerTest):
             row = xhs_row(f"rec{i}")
             row.consecutive_failures = 1      # 都已经是第二击了，本该全部判死
             rows.append(row)
-        report = self.run_with(lambda *a, **k: err(404, "not_found", "笔记不存在"), rows)
+        report = self.run_with(lambda *a, **k: err(200, 1003, "未找到对应内容"), rows)
 
         self.assertTrue(report.breaker_tripped)
         for outcome in report.outcomes:
@@ -195,7 +220,7 @@ class TestCircuitBreaker(RunnerTest):
     def test_small_batch_does_not_trip_breaker(self):
         row = xhs_row()
         row.consecutive_failures = 1
-        report = self.run_with([err(404, "not_found", "笔记不存在")], [row])
+        report = self.run_with([err(200, 1003, "未找到对应内容")], [row])
         self.assertFalse(report.breaker_tripped)
         self.assertEqual(report.outcomes[0].status, runner.STATUS_GONE)
 
@@ -233,7 +258,7 @@ class TestPartialFailure(RunnerTest):
     def test_detail_failure_still_writes_comment_data(self):
         # 评论拿到了，detail 挂了 —— 不该整行判失败
         report = self.run_with(
-            [sse(comment_page(count=42)), err(500, "server_error", "上游故障")],
+            [sse(comment_page(count=42)), err(500, 1005, "服务暂时不可用，请稍后重试")],
             [xhs_row()],
         )
         outcome = report.outcomes[0]
@@ -242,7 +267,7 @@ class TestPartialFailure(RunnerTest):
         self.assertNotIn(self.settings.fields.like_count, outcome.fields)
 
     def test_comments_failure_fails_the_row(self):
-        report = self.run_with([err(500, "server_error", "上游故障")] * 3, [xhs_row()])
+        report = self.run_with([err(500, 1005, "服务暂时不可用，请稍后重试")] * 3, [xhs_row()])
         self.assertEqual(report.outcomes[0].status, runner.STATUS_FAILED)
 
 
@@ -255,15 +280,15 @@ class TestFatalErrorsStopTheBatch(RunnerTest):
             if calls["n"] <= 2:
                 return sse(comment_page()) if calls["n"] == 1 else sse(
                     {"like_count": 1, "points": {"cost": 10, "balance": 1}})
-            return err(401, "invalid_api_key", "API Key 无效或已失效。")
+            return err(401, 1401, "API Key 无效或已失效。")
 
         report = self.run_with(responder, [xhs_row("rec1"), xhs_row("rec2"), xhs_row("rec3")])
         self.assertEqual(len(report.outcomes), 1)              # 第一行的结果保住了
         self.assertEqual(report.outcomes[0].record_id, "rec1")
-        self.assertIn("invalid_api_key", report.aborted_reason)
+        self.assertIn("1401", report.aborted_reason)
 
     def test_insufficient_balance_aborts(self):
-        report = self.run_with([err(402, "insufficient_balance", "积分不足")], [xhs_row()])
+        report = self.run_with([err(200, 1004, "当前 API Key 积分不足。")], [xhs_row()])
         self.assertEqual(report.outcomes, [])
         self.assertIn("积分不足", report.aborted_reason)
 

@@ -49,7 +49,7 @@ class TestCozeBundle(unittest.TestCase):
         for name in [
             "Settings", "Row", "parse", "plan_calls", "read_comment_page", "merge_detail",
             "decide", "decide_pinned_state", "gone_verdict", "suspect_verdict",
-            "merge", "format_digest", "format_pinned", "parse_response", "build_call",
+            "merge", "format_digest", "format_pinned", "parse_response", "build_body",
             "headers", "endpoint", "Failure", "FATAL", "Err", "Ok", "main",
         ]:
             self.assertIn(name, self.namespace, f"打包产物里缺 {name}")
@@ -87,10 +87,22 @@ class TestCozeBundle(unittest.TestCase):
     def test_protocol_parsing_works_inside_bundle(self):
         ns = self.namespace
         result = ns["parse_response"](
-            401, "application/json",
-            '{"error":"invalid_api_key","error_description":"API Key 无效或已失效。"}')
+            401, "application/json", '{"code":1401,"message":"API Key 无效或已失效。"}')
         self.assertIs(result.kind, ns["Failure"].AUTH)
         self.assertIn(result.kind, ns["FATAL"])
+
+    def test_http_200_business_error_is_caught_inside_bundle(self):
+        """业务错误走 HTTP 200 + code。这条在扣子里错了，
+        每一个「笔记已删除」都会被当成成功。"""
+        ns = self.namespace
+        result = ns["parse_response"](200, "application/json",
+                                      '{"code":1008,"message":"当前作品已删除。"}')
+        self.assertIs(result.kind, ns["Failure"].GONE)
+        self.assertTrue(result.definitive)
+
+    def test_rest_endpoints_inside_bundle(self):
+        ns = self.namespace
+        self.assertTrue(ns["endpoint"]("xhs", "comments").endswith("/xhs/note/comment/list"))
 
     def test_call_planning_works_inside_bundle(self):
         ns = self.namespace
