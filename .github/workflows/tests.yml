@@ -1,9 +1,13 @@
 name: 测试
 
 on:
-  push:
-    branches: ["**"]
   pull_request:
+  push:
+    # 只在默认分支上按 push 触发。功能分支由 pull_request 覆盖——
+    # 两个都开着的话，开了 PR 的分支每推一次会跑两遍，白烧一倍 Actions 额度。
+    branches:
+      - claude/socialdatax-skills-install-lq5wx4
+      - main
 
 jobs:
   unittest:
