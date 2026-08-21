@@ -50,16 +50,18 @@ Railway 上用的是标准库，请求头想怎么设怎么设，已经实测跑
 
 GitHub → 右上 `+` → `New repository`
 
-- **Repository name**：随便起，比如 `note-monitor` / `xhsearch`
-- **Visibility**：选 **Private**（代码里不含密钥，但没必要公开）
+- **Repository name**：`note-monitor`
+- **Visibility**：**Private**（代码里不含密钥，但没必要公开）
 - 下面的 `Add a README file` / `.gitignore` / `license` **三个都不要勾**——
   勾了会产生一个初始提交，等下推代码要多解决一次冲突
 
-建完它会给你一个地址，形如 `https://github.com/你的用户名/note-monitor.git`，**复制下来**。
+点 `Create repository`。**做完应该看到**一个空仓库页面，上面写着
+"Quick setup — if you've done this kind of thing before"。
 
 ### 1.2 把代码推过去
 
-在你自己电脑上（需要装了 git）：
+在你自己电脑上（需要装了 git 和 Python 3.11+），**整段复制粘贴执行**，
+只有最后一行的用户名要换成你自己的：
 
 ```bash
 # 1. 把现在这份代码拉下来
@@ -68,27 +70,30 @@ cd note-monitor
 git checkout claude/xiaohongshu-screenshot-scraping-a72ctw
 
 # 2. 抹掉旧仓库的历史，重新开始
-#    （这份代码是一路探索出来的，几十个提交对新仓库没有价值，
-#      而且旧仓库里还有别的分支和一堆 skill 文件）
+#    这份代码是一路探索出来的，几十个提交对新仓库没有价值；
+#    旧仓库里还有别的分支和一堆 skill 文件，也一并甩掉。
 rm -rf .git
 git init -b main
 git add -A
 git commit -m "小红书/抖音笔记评论监控，回写飞书多维表格"
 
-# 3. 推到你的新仓库（把地址换成 1.1 里复制的那个）
+# 3. 推到你的新仓库 ← 把 你的用户名 换掉
 git remote add origin https://github.com/你的用户名/note-monitor.git
 git push -u origin main
 ```
 
-**做完应该看到**：GitHub 上刷新，能看到 `xhsearch/`、`cli.py`、`docs/` 这些文件，
+**做完应该看到**：GitHub 上刷新，能看到 `xhsearch/`、`cli.py`、`docs/` 这些目录，
 提交历史只有一条。
 
 > **卡住了怎么办**
-> - `git push` 要求登录 → GitHub 现在不收密码了，要用 Personal Access Token
->   （Settings → Developer settings → Personal access tokens → 建一个勾 `repo` 权限的），
->   push 时用户名填你的用户名、密码栏粘那个 token。
-> - 提示 `rejected ... fetch first` → 你在 1.1 勾了 README。
->   跑 `git push -u origin main --force` 覆盖掉那个初始提交即可（新仓库里没东西可丢）。
+> - `git push` 要求输密码 → GitHub 早就不收密码了，要用 Personal Access Token：
+>   Settings → Developer settings → Personal access tokens → Tokens (classic)
+>   → Generate new token → 勾 **`repo`** → 生成后复制。
+>   push 时用户名填你的用户名，**密码栏粘那个 token**。
+> - `rejected ... fetch first` → 你在 1.1 勾了 README。
+>   跑 `git push -u origin main --force`，新仓库里没东西可丢。
+> - `command not found: git` → 先装 git（macOS 装 Xcode Command Line Tools，
+>   Windows 装 Git for Windows）。
 
 ### 1.3 确认测试是绿的
 
