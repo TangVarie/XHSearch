@@ -243,6 +243,8 @@ python3 -m unittest discover -s tests -t .
 
 建表步骤见 [`docs/表结构.md`](docs/表结构.md)，**放在哪、怎么配、怎么跑起来见 [`docs/部署.md`](docs/部署.md)**。
 
+要跑在扣子上：[`docs/扣子工作流搭建说明.md`](docs/扣子工作流搭建说明.md) —— 这份文档可以直接连同 `coze_node.py` 一起交给扣子，让它照着生成工作流。
+
 ---
 
 ## 六、上线前必须验的事
@@ -270,10 +272,11 @@ xhsearch/
   feishu.py      多维表格读写
   runner.py      编排：读表 → 调接口 → 判定 → 写回
 cli.py           命令行入口
+coze_node.py     ← 扣子代码节点直接粘这个（自动生成，CI 保证与源码同步）
 tools/
-  build_coze_node.py   打包成扣子代码节点用的单文件
+  build_coze_node.py   生成上面那个文件
   estimate_cost.py     按配置算月度成本
-tests/           122 个测试，全离线
+tests/           140 个测试，全离线
 ```
 
 分层的用意：**纯函数和网络严格分开**。所以核心逻辑能整段打包进扣子，

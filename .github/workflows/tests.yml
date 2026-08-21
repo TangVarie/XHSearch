@@ -21,5 +21,19 @@ jobs:
       # 全部测试离线运行，不需要任何 API Key。
       - name: 跑单元测试
         run: python3 -m unittest discover -s tests -t . -v
-      - name: 检查扣子打包产物能生成
-        run: python3 tools/build_coze_node.py > /dev/null
+      # 这一步治的是扣子方案最大的风险：改了 xhsearch/ 下的逻辑，
+      # 却忘了重新生成 coze_node.py 并粘回扣子。
+      # 仓库里的 coze_node.py 和源码对不上时，这里会直接失败。
+      - name: 检查 coze_node.py 与源码同步
+        run: |
+          python3 tools/build_coze_node.py > /tmp/coze_node.expected.py
+          if ! diff -q coze_node.py /tmp/coze_node.expected.py > /dev/null; then
+            echo "::error::coze_node.py 和 xhsearch/ 下的源码不同步。"
+            echo "改完源码后请重新生成并提交："
+            echo "    python3 tools/build_coze_node.py > coze_node.py"
+            echo ""
+            echo "差异："
+            diff coze_node.py /tmp/coze_node.expected.py | head -40
+            exit 1
+          fi
+          echo "✅ coze_node.py 与源码一致"

@@ -1,7 +1,6 @@
 .env
 *.pyc
 __pycache__/
-coze_node.py
 .venv/
 *.sqlite
 *.db
