@@ -72,16 +72,16 @@ class TestLinkParsing(unittest.TestCase):
 
 
 class TestTagMerge(unittest.TestCase):
-    NS = ["评估中", "爆贴", "大爆", "风控", "已失效"]
+    NS = ["评估中", "爆贴", "大爆", "风控中", "已失效"]
 
     def test_human_tags_survive(self):
-        result = tags.merge(["已复盘", "客户确认", "爆贴"], {"风控"}, self.NS)
+        result = tags.merge(["已复盘", "客户确认", "爆贴"], {"风控中"}, self.NS)
         self.assertIn("已复盘", result.final)
         self.assertIn("客户确认", result.final)
-        self.assertIn("风控", result.final)
+        self.assertIn("风控中", result.final)
         self.assertNotIn("爆贴", result.final)   # 机器标签可以撤回
         self.assertEqual(result.removed, ["爆贴"])
-        self.assertEqual(result.added, ["风控"])
+        self.assertEqual(result.added, ["风控中"])
 
     def test_idempotent(self):
         first = tags.merge(["爆贴"], {"爆贴"}, self.NS)
@@ -89,7 +89,7 @@ class TestTagMerge(unittest.TestCase):
         self.assertFalse(first.changed)
 
     def test_unknown_option_is_dropped_not_written(self):
-        result = tags.merge([], {"爆贴"}, self.NS, known_options=["风控", "已失效"])
+        result = tags.merge([], {"爆贴"}, self.NS, known_options=["风控中", "已失效"])
         self.assertEqual(result.final, [])
         self.assertEqual(result.dropped_unknown, ["爆贴"])
 
@@ -98,7 +98,7 @@ class TestTagMerge(unittest.TestCase):
             tags.merge([], {"随便编的"}, self.NS)
 
     def test_none_current(self):
-        self.assertEqual(tags.merge(None, {"风控"}, self.NS).final, ["风控"])
+        self.assertEqual(tags.merge(None, {"风控中"}, self.NS).final, ["风控中"])
 
 
 class TestCommentAnalysis(unittest.TestCase):
@@ -297,24 +297,24 @@ class TestRiskDetection(unittest.TestCase):
         return analyze.decide(self._snap(count), self.settings, **kw)
 
     def test_comment_halving_flags_risk(self):
-        self.assertIn("风控", self.decide(20, previous_comment_count=100).tags)
+        self.assertIn("风控中", self.decide(20, previous_comment_count=100).tags)
 
     def test_small_baseline_drop_is_noise(self):
-        self.assertNotIn("风控", self.decide(2, previous_comment_count=8).tags)
+        self.assertNotIn("风控中", self.decide(2, previous_comment_count=8).tags)
 
     def test_zero_comments_after_window_flags_risk(self):
-        self.assertIn("风控", self.decide(0, age_hours=72).tags)
+        self.assertIn("风控中", self.decide(0, age_hours=72).tags)
 
     def test_zero_comments_during_cold_start_is_fine(self):
-        self.assertNotIn("风控", self.decide(0, age_hours=3).tags)
+        self.assertNotIn("风控中", self.decide(0, age_hours=3).tags)
 
     def test_risk_is_volatile_and_clears_on_recovery(self):
         """恢复正常要能自动摘掉，否则表会越来越红，最后没人看。"""
-        v = self.decide(80, previous_comment_count=75, current_tags=["风控"])
-        self.assertNotIn("风控", v.tags)
+        v = self.decide(80, previous_comment_count=75, current_tags=["风控中"])
+        self.assertNotIn("风控中", v.tags)
 
     def test_gone_tags_both_gone_and_risk(self):
-        self.assertEqual(analyze.gone_verdict(self.settings).tags, {"已失效", "风控"})
+        self.assertEqual(analyze.gone_verdict(self.settings).tags, {"已失效", "风控中"})
 
     def test_first_strike_tags_nothing(self):
         """一次抖动就把好帖子标成风控 = 运营全线停投。绝不能发生。"""
@@ -336,13 +336,80 @@ class TestRiskDetection(unittest.TestCase):
                         self.assertTrue(v.tags <= ns, f"{v.tags} 越界")
 
 
-class TestPinnedLossIsCalledOut(unittest.TestCase):
-    def test_previously_pinned_now_lost(self):
-        settings = Settings()
-        snap = analyze.read_comment_page("xhs", {"items": [], "comment_count": 10})
-        v = analyze.decide(snap, settings, previous_comment_count=None, age_hours=10,
+class TestCommentStatusColumn(unittest.TestCase):
+    """「评论状态」是人机共用的多选列：机器管置顶三值，人工值原样保留。"""
+
+    def setUp(self):
+        self.settings = Settings()
+        self.cs = self.settings.comment_status
+
+    def _snap(self, pinned_text=None, others=(), platform="xhs"):
+        items = []
+        if pinned_text is not None:
+            items.append({"content": pinned_text, "is_pinned": True, "is_author_comment": True,
+                          "like_count": 0, "ip_location": "", "author": {"name": "官号"}})
+        for text in others:
+            items.append({"content": text, "is_pinned": False, "is_author_comment": False,
+                          "like_count": 0, "ip_location": "", "author": {"name": "路人"}})
+        return analyze.read_comment_page(platform, {"items": items, "comment_count": len(items)})
+
+    def values(self, snap, expected, current=None):
+        pin, _ = analyze.decide_pin(snap, expected)
+        return analyze.comment_status_values(pin, current, self.settings)
+
+    def test_success(self):
+        self.assertEqual(self.values(self._snap("戳主页领30元优惠券"), "戳主页领30元优惠券"),
+                         {self.cs.pinned_ok})
+
+    def test_never_pinned_when_no_history(self):
+        """从来没有置顶 → 「没有置顶」。"""
+        self.assertEqual(self.values(self._snap(others=["路过"]), "戳主页领30元优惠券", []),
+                         {self.cs.never_pinned})
+
+    def test_lost_when_previously_succeeded(self):
+        """置顶过、现在没了 → 「置顶掉了」。区分全靠这一行的历史。"""
+        self.assertEqual(
+            self.values(self._snap(others=["路过"]), "戳主页领30元优惠券", [self.cs.pinned_ok]),
+            {self.cs.pinned_lost})
+
+    def test_lost_stays_lost(self):
+        """掉了之后一直没恢复，下一轮不该退回「没有置顶」——
+        那等于把曾经置顶过这件事抹掉。"""
+        self.assertEqual(
+            self.values(self._snap(others=["路过"]), "戳主页领30元优惠券", [self.cs.pinned_lost]),
+            {self.cs.pinned_lost})
+
+    def test_taken_over_counts_as_lost(self):
+        """置顶位被别人占了，对我方而言就是置顶没了。"""
+        snap = self._snap("楼主恰饭了吧", others=["戳主页领30元优惠券"])
+        self.assertEqual(self.values(snap, "戳主页领30元优惠券", [self.cs.pinned_ok]),
+                         {self.cs.pinned_lost})
+
+    def test_recovery_back_to_success(self):
+        self.assertEqual(
+            self.values(self._snap("戳主页领30元优惠券"), "戳主页领30元优惠券", [self.cs.pinned_lost]),
+            {self.cs.pinned_ok})
+
+    def test_douyin_returns_none_not_empty(self):
+        """None = 不碰这一列；空集合会把上一轮的结论摘掉，两者天差地别。"""
+        self.assertIsNone(self.values(self._snap(others=["哈哈"], platform="douyin"), "任意关键词"))
+
+    def test_no_seed_keyword_returns_none(self):
+        """有置顶但没填种子关键词：写「置顶成功」是撒谎，写「没有置顶」也是撒谎。"""
+        self.assertIsNone(self.values(self._snap("某条置顶"), ""))
+
+    def test_human_values_survive_the_merge(self):
+        merged = tags.merge(["评论已显示", self.cs.pinned_ok], {self.cs.pinned_lost},
+                            self.cs.namespace())
+        self.assertIn("评论已显示", merged.final)
+        self.assertIn(self.cs.pinned_lost, merged.final)
+        self.assertNotIn(self.cs.pinned_ok, merged.final)   # 三值互斥
+
+    def test_loss_is_called_out_in_notes(self):
+        snap = self._snap(others=["路过"])
+        v = analyze.decide(snap, self.settings, previous_comment_count=None, age_hours=10,
                            expected_pinned="官方置顶文案在此",
-                           previous_comment_status=settings.pinned.success_value)
+                           current_comment_status=[self.cs.pinned_ok])
         self.assertTrue(any("此前已确认置顶成功" in n for n in v.notes))
 
 

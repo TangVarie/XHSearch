@@ -84,14 +84,13 @@ def cmd_doctor() -> int:
 
     status_options = table.list_field_options(f.comment_status)
     if status_options is not None:
-        wanted = [settings.pinned.success_value]
-        if settings.pinned.overwrite_on_lost:
-            wanted.append(settings.pinned.lost_value)
-        missing = [v for v in wanted if v not in status_options]
+        print(f"   「{f.comment_status}」有 {len(status_options)} 个选项："
+              f"{'、'.join(status_options)}")
+        missing = [v for v in settings.comment_status.namespace() if v not in status_options]
         if missing:
             problems.append(
-                f"「{f.comment_status}」缺这些选项：{'、'.join(missing)}。"
-                f"机器要往这一列写它们，没建就写不进去。"
+                f"「{f.comment_status}」缺这些选项，请先在飞书里手工建好：{'、'.join(missing)}。"
+                f"机器要往这一列写它们，没建就写不进去（不会误写，但置顶判定等于没生效）。"
             )
 
     print("③ 试读一行 …", end=" ", flush=True)
@@ -152,6 +151,7 @@ def _run(mode: str, record_ids: list[str] | None) -> int:
         row_list, api_key, settings,
         now=now,
         known_options=table.list_field_options(settings.fields.traffic_status),
+        comment_status_options=table.list_field_options(settings.fields.comment_status),
         forced=(record_ids is not None),
         progress=print,
     )

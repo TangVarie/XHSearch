@@ -246,6 +246,31 @@ def decide_pin(snapshot: Snapshot, expected: str) -> tuple[Pin, str]:
     return Pin.SEED_MISSING, "⚠ 首页未找到我方种子评论（可能已被删除，或不在第一页）"
 
 
+def comment_status_values(
+    pin: Pin,
+    current: Optional[list[str]],
+    settings: Settings,
+) -> Optional[set[str]]:
+    """算出「评论状态」这一列里机器该写的值。
+
+    返回 None 表示**这一轮不该碰这一列**，和「写一个空集合」完全不是一回事：
+    空集合会把机器上一轮写的置顶结论摘掉，None 是原样保留。
+
+    两种必须返回 None 的情况：
+      * 抖音 —— 接口没有 is_pinned，判不了
+      * 有置顶但没填种子关键词 —— 分不清是我方的还是别人的，
+        写「置顶成功」是撒谎，写「没有置顶」也是撒谎
+    """
+    cs = settings.comment_status
+    if pin in (Pin.UNSUPPORTED, Pin.NO_SEED):
+        return None
+    if pin is Pin.SUCCESS:
+        return {cs.pinned_ok}
+    # 剩下的都是「我方置顶现在不在」：置顶被别人顶了、掉了、种子评论找不到、
+    # 压根没有置顶。区分只看历史——成功过就是掉了，没成功过就是从来没有。
+    return {cs.pinned_lost} if cs.ever_pinned(current) else {cs.never_pinned}
+
+
 @dataclass
 class Verdict:
     tags: set[str] = field(default_factory=set)
@@ -261,7 +286,7 @@ def decide(
     age_hours: Optional[float],
     expected_pinned: str = "",
     current_tags: Optional[list[str]] = None,
-    previous_comment_status: str = "",
+    current_comment_status: Optional[list[str]] = None,
 ) -> Verdict:
     """算出这一行本次应有的机器标签和置顶判定。
 
@@ -320,12 +345,13 @@ def decide(
     verdict.pin, note = decide_pin(snapshot, expected_pinned)
     if note:
         verdict.notes.append(note)
-    # 之前写过「置顶成功」、现在掉了 —— 这是种草投放里最该被立刻发现的事之一。
+    # 之前置顶成功过、现在掉了 —— 这是种草投放里最该被立刻发现的事之一。
     if (
-        previous_comment_status == settings.pinned.success_value
-        and verdict.pin in (Pin.REPLACED, Pin.LOST, Pin.SEED_MISSING)
+        settings.comment_status.ever_pinned(current_comment_status)
+        and verdict.pin is not Pin.SUCCESS
+        and verdict.pin is not Pin.UNSUPPORTED
     ):
-        verdict.notes.append("⚠ 此前已确认置顶成功，本轮置顶已掉")
+        verdict.notes.append("⚠ 此前已确认置顶成功，本轮我方置顶已不在")
 
     return verdict
 

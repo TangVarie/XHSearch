@@ -163,6 +163,7 @@ def refresh(
     *,
     now: Optional[datetime] = None,
     known_options: Optional[list[str]] = None,
+    comment_status_options: Optional[list[str]] = None,
     forced: bool = False,
     timeout: float = 30.0,
     progress: Optional[Callable[[str], None]] = None,
@@ -220,15 +221,27 @@ def refresh(
             if merged.changed:
                 fields[f.traffic_status] = merged.final
 
-        # 「评论状态」是运营手工维护的单选列，机器只在确认置顶成功时覆盖。
-        # 掉置顶时默认不动这一列（见 PinnedPolicy.overwrite_on_lost 的说明），
-        # 事实只写进诊断信息。
-        if verdict.pin is analyze.Pin.SUCCESS:
-            fields[f.comment_status] = settings.pinned.success_value
-        elif settings.pinned.overwrite_on_lost and verdict.pin in (
-            analyze.Pin.REPLACED, analyze.Pin.LOST, analyze.Pin.SEED_MISSING
-        ):
-            fields[f.comment_status] = settings.pinned.lost_value
+        # 「评论状态」也是人机共用的多选列，走和流量状态一模一样的合并算法：
+        # 机器管置顶那三个值，人工维护的「评论是否显示」之类原样保留。
+        if touch_tags:
+            wanted = analyze.comment_status_values(verdict.pin, row.comment_status, settings)
+            # None 表示这一轮判不了（抖音、或没填种子关键词）——原样保留，
+            # 而不是写个空集合把上一轮的置顶结论摘掉。
+            if wanted is not None:
+                merged_status = tags.merge(
+                    row.comment_status,
+                    wanted,
+                    settings.comment_status.namespace(),
+                    known_options=comment_status_options,
+                )
+                if merged_status.changed:
+                    fields[f.comment_status] = merged_status.final
+                if merged_status.dropped_unknown:
+                    fields[f.failure_reason] = (
+                        fields[f.failure_reason]
+                        + f"；这些值在「{f.comment_status}」里还没建选项，已跳过："
+                        + "、".join(merged_status.dropped_unknown)
+                    )[:500]
 
         if row.parsed.platform:
             fields[f.platform] = "小红书" if row.parsed.platform == "xhs" else "抖音"
@@ -295,8 +308,8 @@ def refresh(
             previous_comment_count=row.previous_comment_count,
             age_hours=row.age_hours(now),
             expected_pinned=row.expected_pinned,
-            current_tags=row.current_tags,          # 热度档位的棘轮要看现有档位
-            previous_comment_status=row.comment_status,
+            current_tags=row.current_tags,                    # 热度档位的棘轮要看现有档位
+            current_comment_status=row.comment_status,        # 区分「掉了」和「从来没有」
         )
         if error is not None:
             verdict.notes.append(f"（detail 未取到：{error.operator_text()[:120]}）")
@@ -396,7 +409,7 @@ def load_rows(
             previous_comment_count=feishu.read_int(cells.get(f.comment_count)),
             last_updated_ms=feishu.read_timestamp_ms(cells.get(f.last_updated)),
             consecutive_failures=feishu.read_int(cells.get(f.consecutive_failures)) or 0,
-            comment_status=feishu.read_text(cells.get(f.comment_status)),
+            comment_status=feishu.read_multi_select(cells.get(f.comment_status)),
             queued=feishu.read_bool(cells.get(f.queued)),
         )
         # 手动触发时无视分层节流——人明确要求刷新，就该刷。

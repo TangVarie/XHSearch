@@ -30,7 +30,7 @@ class FieldNames:
     like_count: str = "点赞数"
     collect_count: str = "收藏数"
     pinned_comment: str = "置顶评论"
-    comment_status: str = "评论状态"          # 单选，人工维护；机器只在置顶成功时覆盖
+    comment_status: str = "评论状态"          # 多选，人机共用：机器管置顶三值，人工值不碰
     comment_digest: str = "评论区快照"
     traffic_status: str = "流量状态"          # 多选，人机共用
     refresh_status: str = "刷新状态"
@@ -72,7 +72,7 @@ class Tags:
     evaluating: str = "评估中"
     hot: str = "爆贴"
     super_hot: str = "大爆"
-    risk: str = "风控"
+    risk: str = "风控中"
     gone: str = "已失效"
 
     def heat_tiers(self) -> list[str]:
@@ -89,24 +89,36 @@ class Tags:
 
 
 @dataclass
-class PinnedPolicy:
-    """置顶判定写回「评论状态」单选列的策略。
+class CommentStatus:
+    """「评论状态」多选列里**机器管辖**的三个值。
 
-    只有小红书能判置顶（抖音评论接口没有 is_pinned 字段）。
+    这一列是人机共用的：置顶结论由机器每轮重算并覆盖，而「评论是否显示」
+    这类人工维护的值并列在同一列里，机器读得到但永远不碰。
+    用的是和 流量状态 完全相同的合并算法。
+
+    三个值互斥，每轮只写一个：
+
+        置顶成功  —— 置顶的确认是我方种子评论
+        置顶掉了  —— 之前置顶成功过，现在我方的置顶不在了
+        没有置顶  —— 从来没成功过，现在也没有
+
+    只有小红书能判（抖音评论接口没有 is_pinned 字段），抖音行完全不碰这一列。
     """
 
-    # 确认置顶成功时写进「评论状态」的值，覆盖原有内容。
-    success_value: str = "置顶成功"
+    pinned_ok: str = "置顶成功"
+    pinned_lost: str = "置顶掉了"
+    never_pinned: str = "没有置顶"
 
-    # 置顶掉了 / 被别人顶替时，要不要也覆盖这一列。
-    #
-    # 默认 False（只在成功时写）。代价必须说清楚：一旦某轮写过「置顶成功」，
-    # 之后置顶掉了这一列**不会变**，表会在你最需要它说真话的时候撒谎。
-    # 掉置顶的事实这时只出现在「诊断信息」里。
-    #
-    # 设成 True 就会在掉置顶时覆盖成 lost_value，代价是会盖掉运营手填的值。
-    overwrite_on_lost: bool = False
-    lost_value: str = "置顶已掉"
+    def namespace(self) -> list[str]:
+        return [self.pinned_ok, self.pinned_lost, self.never_pinned]
+
+    def ever_pinned(self, current: list[str] | None) -> bool:
+        """这一行历史上有没有成功置顶过。
+
+        「置顶掉了」本身也算证据——掉了之后一直没恢复，下一轮不该退回
+        「没有置顶」，那等于把曾经置顶过这件事抹掉。
+        """
+        return bool({self.pinned_ok, self.pinned_lost} & set(current or []))
 
 
 @dataclass
@@ -200,7 +212,7 @@ class Safety:
 class Settings:
     fields: FieldNames = field(default_factory=FieldNames)
     tags: Tags = field(default_factory=Tags)
-    pinned: PinnedPolicy = field(default_factory=PinnedPolicy)
+    comment_status: CommentStatus = field(default_factory=CommentStatus)
     thresholds: Thresholds = field(default_factory=Thresholds)
     digest: DigestFormat = field(default_factory=DigestFormat)
     refresh: RefreshTiers = field(default_factory=RefreshTiers)

@@ -89,10 +89,10 @@ class TestCozeBundle(unittest.TestCase):
     def test_tag_merge_works_inside_bundle(self):
         ns = self.namespace
         settings = ns["Settings"]()
-        merged = ns["merge"](["已复盘", "风控"], {"爆贴"}, settings.tags.namespace())
+        merged = ns["merge"](["已复盘", "风控中"], {"爆贴"}, settings.tags.namespace())
         self.assertIn("已复盘", merged.final)
         self.assertIn("爆贴", merged.final)
-        self.assertNotIn("风控", merged.final)
+        self.assertNotIn("风控中", merged.final)
 
     def test_protocol_parsing_works_inside_bundle(self):
         ns = self.namespace

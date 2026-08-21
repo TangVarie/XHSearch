@@ -1,0 +1,21 @@
+name: 测试
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # 项目零第三方依赖，不需要 pip install。
+      # 全部测试离线运行，不需要任何 API Key。
+      - name: 跑单元测试
+        run: python3 -m unittest discover -s tests -t . -v
+      - name: 检查扣子打包产物能生成
+        run: python3 tools/build_coze_node.py > /dev/null

@@ -103,19 +103,19 @@ class TestHumanTagsAreNeverClobbered(RunnerTest):
     def test_manual_tags_survive_machine_write(self):
         report = self.run_with(
             [sse(comment_page(count=150)), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
-            [xhs_row(tags=["已复盘", "客户确认", "风控"])],
+            [xhs_row(tags=["已复盘", "客户确认", "风控中"])],
         )
         final = report.outcomes[0].fields[self.settings.fields.traffic_status]
         self.assertIn("已复盘", final)
         self.assertIn("客户确认", final)
         self.assertIn("大爆", final)
-        self.assertNotIn("风控", final)   # 机器标签可撤回
+        self.assertNotIn("风控中", final)   # 机器标签可撤回
 
     def test_unknown_option_is_filtered_out(self):
         report = self.run_with(
             [sse(comment_page(count=150)), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
             [xhs_row()],
-            known_options=["风控", "已失效"],       # 表里没建热度档位的选项
+            known_options=["风控中", "已失效"],       # 表里没建热度档位的选项
         )
         fields = report.outcomes[0].fields
         # 过滤后无标签可写 → 该字段根本不进 payload，而不是写个空数组把人工标签抹掉
@@ -155,7 +155,7 @@ class TestDeadPostDetection(RunnerTest):
     def test_first_strike_does_not_strip_existing_risk_tag(self):
         """上一轮判过风控，这一轮取不到 —— 不能因此把风控摘掉。"""
         report = self.run_with([err(200, 1003, "未找到对应内容")],
-                               [xhs_row(tags=["风控", "已复盘"])])
+                               [xhs_row(tags=["风控中", "已复盘"])])
         self.assertNotIn(self.settings.fields.traffic_status, report.outcomes[0].fields)
 
     def test_second_strike_convicts(self):
@@ -166,7 +166,7 @@ class TestDeadPostDetection(RunnerTest):
         self.assertEqual(outcome.status, runner.STATUS_GONE)
         final = outcome.fields[self.settings.fields.traffic_status]
         self.assertIn("已失效", final)
-        self.assertIn("风控", final)
+        self.assertIn("风控中", final)
         self.assertIn("已复盘", final)     # 人工标签照样保住
         self.assertIn("未找到对应内容", outcome.fields[self.settings.fields.failure_reason])
 
@@ -319,7 +319,7 @@ class TestBadLink(RunnerTest):
 
     def test_unparseable_link_does_not_strip_existing_tags(self):
         """链接识别不了 ≠ 帖子没事了。这一轮没获得任何新信息，就别碰流量状态。"""
-        row = Row(record_id="rec9", link_cell="待补链接", current_tags=["风控", "已复盘"])
+        row = Row(record_id="rec9", link_cell="待补链接", current_tags=["风控中", "已复盘"])
         with mock.patch.object(transport, "post"):
             report = runner.refresh([row], "k", self.settings, now=NOW)
         self.assertNotIn(self.settings.fields.traffic_status, report.outcomes[0].fields)
@@ -358,37 +358,44 @@ class TestDouyin(RunnerTest):
 
 
 class TestPinnedTracking(RunnerTest):
-    def test_seeded_comment_still_pinned(self):
-        report = self.run_with(
-            [sse(comment_page()), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
-            [xhs_row(expected="戳主页领券")],
-        )
-        self.assertEqual(report.outcomes[0].fields[self.settings.fields.comment_status],
-                         self.settings.pinned.success_value)
+    """「评论状态」多选列：机器管置顶三值，人工值原样保留。"""
 
-    def test_pin_fell_off_does_not_overwrite_by_default(self):
-        """默认只在置顶成功时写「评论状态」。掉置顶时不动这一列——
-        代价是这一列会停留在「置顶成功」，事实只出现在诊断信息里。"""
-        row = xhs_row(expected="戳主页领券")
-        row.comment_status = "置顶成功"
-        report = self.run_with(
-            [sse(comment_page(pinned=False)), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
+    def _row(self, *, expected="戳主页领券", status=None):
+        row = xhs_row(expected=expected)
+        row.comment_status = status or []
+        return row
+
+    def _run(self, pinned, row):
+        return self.run_with(
+            [sse(comment_page(pinned=pinned)),
+             sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
             [row],
         )
-        fields = report.outcomes[0].fields
-        self.assertNotIn(self.settings.fields.comment_status, fields)
+
+    def test_seeded_comment_still_pinned(self):
+        fields = self._run(True, self._row()).outcomes[0].fields
+        self.assertEqual(fields[self.settings.fields.comment_status],
+                         [self.settings.comment_status.pinned_ok])
+
+    def test_never_pinned(self):
+        fields = self._run(False, self._row()).outcomes[0].fields
+        self.assertEqual(fields[self.settings.fields.comment_status],
+                         [self.settings.comment_status.never_pinned])
+
+    def test_pin_fell_off_after_success(self):
+        cs = self.settings.comment_status
+        fields = self._run(False, self._row(status=[cs.pinned_ok])).outcomes[0].fields
+        self.assertEqual(fields[self.settings.fields.comment_status], [cs.pinned_lost])
         self.assertIn("此前已确认置顶成功", fields[self.settings.fields.failure_reason])
 
-    def test_pin_fell_off_overwrites_when_enabled(self):
-        self.settings.pinned.overwrite_on_lost = True
-        row = xhs_row(expected="戳主页领券")
-        row.comment_status = "置顶成功"
-        report = self.run_with(
-            [sse(comment_page(pinned=False)), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
-            [row],
-        )
-        self.assertEqual(report.outcomes[0].fields[self.settings.fields.comment_status],
-                         self.settings.pinned.lost_value)
+    def test_human_value_in_the_same_column_survives(self):
+        """「评论是否显示」这类人工维护的值和置顶并列在同一列，机器绝不碰。"""
+        cs = self.settings.comment_status
+        row = self._row(status=["评论已显示", cs.pinned_ok])
+        final = self._run(False, row).outcomes[0].fields[self.settings.fields.comment_status]
+        self.assertIn("评论已显示", final)
+        self.assertIn(cs.pinned_lost, final)
+        self.assertNotIn(cs.pinned_ok, final)     # 三值互斥，旧值被摘掉
 
     def test_pin_taken_over_by_someone_else(self):
         """品牌方最该立刻知道的一种：置顶还在，但被换成了别人的评论。"""
@@ -397,16 +404,33 @@ class TestPinnedTracking(RunnerTest):
         page["items"].append({"content": "戳主页领券", "like_count": 1, "is_pinned": False,
                               "is_author_comment": True, "ip_location": "上海",
                               "author": {"name": "官号"}})
+        cs = self.settings.comment_status
         report = self.run_with(
             [sse(page), sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
-            [xhs_row(expected="戳主页领券")],
+            [self._row(status=[cs.pinned_ok])],
         )
         fields = report.outcomes[0].fields
-        # 不是我们的置顶 → 绝不写「置顶成功」
-        self.assertNotIn(self.settings.fields.comment_status, fields)
+        self.assertEqual(fields[self.settings.fields.comment_status], [cs.pinned_lost])
         self.assertIn("置顶位被他人占据", fields[self.settings.fields.failure_reason])
         # 置顶评论列展示的是「实际置顶的那条」，不是我们希望置顶的那条
         self.assertIn("楼主恰饭了吧", fields[self.settings.fields.pinned_comment])
+
+    def test_no_seed_keyword_leaves_the_column_alone(self):
+        """有置顶但没填种子关键词：写「置顶成功」是撒谎，写「没有置顶」也是撒谎。"""
+        row = self._row(expected="", status=["评论已显示"])
+        fields = self._run(True, row).outcomes[0].fields
+        self.assertNotIn(self.settings.fields.comment_status, fields)
+
+    def test_unknown_option_is_filtered(self):
+        report = self.run_with(
+            [sse(comment_page(pinned=True)),
+             sse({"like_count": 1, "points": {"cost": 10, "balance": 1}})],
+            [self._row()],
+            comment_status_options=["评论已显示"],     # 表里没建置顶三值
+        )
+        fields = report.outcomes[0].fields
+        self.assertNotIn(self.settings.fields.comment_status, fields)
+        self.assertIn("还没建选项", fields[self.settings.fields.failure_reason])
 
 
 if __name__ == "__main__":

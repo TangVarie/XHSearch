@@ -1,0 +1,66 @@
+name: 刷新监控表
+
+# 三种触发方式：
+#   1. 手动（workflow_dispatch）—— 第一次配好后先跑 doctor 体检，不花钱
+#   2. 每小时 —— 处理勾了「排队刷新」的行
+#   3. 每天三次 —— 分层巡检
+#
+# ⚠️ GitHub 的定时任务**不保证准点**，高峰期可能延迟十几分钟，偶尔会跳过一次。
+# 对 8 小时一档的巡检没影响；对「勾了之后多久有反应」有影响，见 docs/部署.md。
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "运行模式"
+        type: choice
+        required: true
+        default: doctor
+        options:
+          - doctor    # 体检：查权限/字段/选项，不发一次业务请求，不花钱
+          - estimate  # 只算这一轮要花多少钱，不发业务请求
+          - queue     # 只刷勾了「排队刷新」的行
+          - sweep     # 分层巡检：刷所有到期的行
+  schedule:
+    # 北京时间每小时的第 5 分钟左右（UTC 与北京时间差 8 小时，每小时跑与时区无关）
+    - cron: "5 * * * *"
+    # 北京时间 08:05 / 16:05 / 00:05 各巡检一次
+    - cron: "5 0,8,16 * * *"
+
+concurrency:
+  # 同一时刻只允许一个刷新在跑。两个实例同时写同一张表会互相覆盖，
+  # 而且会重复花积分。后来的排队等前一个跑完，不取消（取消会丢掉已算的结果）。
+  group: xhsearch-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 决定运行模式
+        id: mode
+        run: |
+          if [ -n "${{ inputs.mode }}" ]; then
+            echo "value=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "5 0,8,16 * * *" ]; then
+            echo "value=sweep" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=queue" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 运行
+        env:
+          SOCIALDATAX_API_KEY: ${{ secrets.SOCIALDATAX_API_KEY }}
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
+          # 独立进程跑批量，不需要扣子那种 60 秒软截止
+          SOFT_DEADLINE_SECONDS: "0"
+        run: python3 cli.py ${{ steps.mode.outputs.value }}
