@@ -1,0 +1,73 @@
+name: 刷新监控表
+
+# 默认**只有手动触发**，定时任务是注释掉的。
+#
+# 为什么：如果你把定时刷新放在 Railway 或扣子上跑，这里再开一套定时，
+# 两边会同时刷同一张表 —— 重复花钱，还可能互相覆盖写入。
+# 一套定时只能有一个地方跑，这是硬规矩。
+#
+# 手动触发这条永远留着，它是「人在外面、手机上也能刷一把」的逃生口，
+# 跟你把定时放哪无关。
+#
+# 想用 GitHub Actions 当定时运行时（见 docs/部署.md 方案 C），
+# 把下面 schedule 那几行的注释去掉，然后合进默认分支。
+# ⚠️ GitHub 的定时不保证准点，高峰期延迟十几分钟，偶尔整个跳过一次。
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "运行模式"
+        type: choice
+        required: true
+        default: doctor
+        options:
+          - doctor    # 体检：查权限/字段/选项，不发一次业务请求，不花钱
+          - estimate  # 只算这一轮要花多少钱，不发业务请求
+          - queue     # 只刷勾了「排队刷新」的行
+          - sweep     # 分层巡检：刷所有到期的行
+  # schedule:
+  #   # 每小时处理勾了「排队刷新」的行
+  #   - cron: "5 * * * *"
+  #   # 北京时间 08:05 / 16:05 / 00:05 各巡检一次（cron 走 UTC）
+  #   - cron: "5 0,8,16 * * *"
+
+concurrency:
+  # 同一时刻只允许一个刷新在跑。两个实例同时写同一张表会互相覆盖，
+  # 而且会重复花钱。后来的排队等前一个跑完，不取消（取消会丢掉已算的结果）。
+  group: xhsearch-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 决定运行模式
+        id: mode
+        run: |
+          if [ -n "${{ inputs.mode }}" ]; then
+            echo "value=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "5 0,8,16 * * *" ]; then
+            echo "value=sweep" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=queue" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 运行
+        env:
+          # 双通道：两个都配就自动降级；只配一个也能跑，没配 Key 的通道会被自动滤掉。
+          TIKHUB_API_KEY: ${{ secrets.TIKHUB_API_KEY }}
+          SOCIALDATAX_API_KEY: ${{ secrets.SOCIALDATAX_API_KEY }}
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_APP_TOKEN: ${{ secrets.FEISHU_APP_TOKEN }}
+          FEISHU_TABLE_ID: ${{ secrets.FEISHU_TABLE_ID }}
+          # 独立进程跑批量，不需要扣子那种 60 秒软截止
+          SOFT_DEADLINE_SECONDS: "0"
+        run: python3 cli.py ${{ steps.mode.outputs.value }}

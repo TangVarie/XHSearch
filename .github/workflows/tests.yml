@@ -1,0 +1,39 @@
+name: 测试
+
+on:
+  pull_request:
+  push:
+    # 只在默认分支上按 push 触发。功能分支由 pull_request 覆盖——
+    # 两个都开着的话，开了 PR 的分支每推一次会跑两遍，白烧一倍 Actions 额度。
+    branches:
+      - claude/socialdatax-skills-install-lq5wx4
+      - main
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # 项目零第三方依赖，不需要 pip install。
+      # 全部测试离线运行，不需要任何 API Key。
+      - name: 跑单元测试
+        run: python3 -m unittest discover -s tests -t . -v
+      # 这一步治的是扣子方案最大的风险：改了 xhsearch/ 下的逻辑，
+      # 却忘了重新生成 coze_node.py 并粘回扣子。
+      # 仓库里的 coze_node.py 和源码对不上时，这里会直接失败。
+      - name: 检查 coze_node.py 与源码同步
+        run: |
+          python3 tools/build_coze_node.py > /tmp/coze_node.expected.py
+          if ! diff -q coze_node.py /tmp/coze_node.expected.py > /dev/null; then
+            echo "::error::coze_node.py 和 xhsearch/ 下的源码不同步。"
+            echo "改完源码后请重新生成并提交："
+            echo "    python3 tools/build_coze_node.py > coze_node.py"
+            echo ""
+            echo "差异："
+            diff coze_node.py /tmp/coze_node.expected.py | head -40
+            exit 1
+          fi
+          echo "✅ coze_node.py 与源码一致"
